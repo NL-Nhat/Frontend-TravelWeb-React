@@ -4,21 +4,34 @@ import api from '../services/api'; // Import instance axios bạn đã tạo
 
 const Home = () => {
   const [tours, setTours] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [tourCount, setTourCount] = useState(0);
+  const [userCount, setUserCount] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  // 1. Gọi API lấy 5 tour hot
+  
   useEffect(() => {
-    const fetchTours = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get('/tours/top5tour');
-        setTours(response.data);
+        // Gọi cả 2 API cùng lúc
+        const [toursRes, tourCountRes, userCountRes, reviewsRes] = await Promise.all([
+          api.get('/tours/top5tour'),
+          api.get('/tours/count-tour'),
+          api.get('/users/count-user'),
+          api.get('/reviews/top3review')
+        ]);
+
+        setTours(toursRes.data);
+        setTourCount(tourCountRes.data);
+        setUserCount(userCountRes.data);
+        setReviews(reviewsRes.data);
         setLoading(false);
       } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu tour:", error);
+        console.error("Lỗi khi lấy dữ liệu:", error);
         setLoading(false);
       }
     };
-    fetchTours();
+
+    fetchData();
   }, []);
 
   // 2. Hiệu ứng Intersection Observer (Chạy sau khi đã có dữ liệu tours)
@@ -49,6 +62,17 @@ const Home = () => {
   // Hàm format giá tiền
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  };
+
+  // Hàm render sao dựa trên numberStar
+  const renderStars = (rating) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <i key={i} className={i <= rating ? "fas fa-star" : "far fa-star"}></i>
+      );
+    }
+    return stars;
   };
 
   return (
@@ -97,11 +121,11 @@ const Home = () => {
                 
             <div className="hero-stats">
               <div className="stat-item">
-                <span className="stat-number">100+</span>
+                <span className="stat-number">{tourCount}+</span>
                 <span className="stat-label">Tour du lịch</span>
               </div>
               <div className="stat-item">
-                <span className="stat-number">50K+</span>
+                <span className="stat-number">{userCount}+</span>
                 <span className="stat-label">Khách hàng</span>
               </div>
               <div className="stat-item">
@@ -117,7 +141,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Tours Section - ĐÃ CẬP NHẬT GỌI API */}
       <section className="featured-tours">
         <div className="container">
           <div className="section-header">
@@ -133,8 +156,7 @@ const Home = () => {
               tours.map((tour) => (
                 <div key={tour.id} className="tour-card">
                   <div className="tour-image">
-                    {/* Sử dụng ảnh từ API, nếu không có thì dùng ảnh mặc định */}
-                    <img src={tour.tourImage || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgAJeADANmONtmC_JNoOKy6Hvo2a8_aboRew&s"} alt={tour.tourName}/>
+                    <img src={tour.tourImage} alt={tour.tourName}/>
                     <div className="tour-badge">Bán chạy</div>
                     <button className="tour-favorite">
                       <i className="far fa-heart"></i>
@@ -185,50 +207,50 @@ const Home = () => {
         </div>
       </section>
 
-      <section class="destinations">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-tag">Điểm đến</span>
-                <h2 class="section-title">Khám Phá Việt Nam</h2>
-                <p class="section-subtitle">Từ Bắc chí Nam, từ núi đến biển</p>
+      <section className="destinations">
+        <div className="container">
+            <div className="section-header">
+                <span className="section-tag">Điểm đến</span>
+                <h2 className="section-title">Khám Phá Việt Nam</h2>
+                <p className="section-subtitle">Từ Bắc chí Nam, từ núi đến biển</p>
             </div>
             
-            <div class="destinations-grid">
-                <div class="destination-card large">
-                    <div class="destination-image">
+            <div className="destinations-grid">
+                <div className="destination-card large">
+                    <div className="destination-image">
                         <img src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800" alt="Miền Trung"/>
                     </div>
-                    <div class="destination-content">
+                    <div className="destination-content">
                         <h3>Miền Trung</h3>
                         <p>15 tour du lịch</p>
-                        <a href="tours.html?region=trung" class="destination-link">
-                            Khám phá <i class="fas fa-arrow-right"></i>
+                        <a href="tours.html?region=trung" className="destination-link">
+                            Khám phá <i className="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
                 
-                <div class="destination-card">
-                    <div class="destination-image">
+                <div className="destination-card">
+                    <div className="destination-image">
                         <img src="https://images.unsplash.com/photo-1540611025311-01df3cef54b5?w=800" alt="Miền Bắc"/>
                     </div>
-                    <div class="destination-content">
+                    <div className="destination-content">
                         <h3>Miền Bắc</h3>
                         <p>20 tour du lịch</p>
-                        <a href="tours.html?region=bac" class="destination-link">
-                            Khám phá <i class="fas fa-arrow-right"></i>
+                        <a href="tours.html?region=bac" className="destination-link">
+                            Khám phá <i className="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
                 
-                <div class="destination-card">
-                    <div class="destination-image">
+                <div className="destination-card">
+                    <div className="destination-image">
                         <img src="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800" alt="Miền Nam"/>
                     </div>
-                    <div class="destination-content">
+                    <div className="destination-content">
                         <h3>Miền Nam</h3>
                         <p>18 tour du lịch</p>
-                        <a href="tours.html?region=nam" class="destination-link">
-                            Khám phá <i class="fas fa-arrow-right"></i>
+                        <a href="tours.html?region=nam" className="destination-link">
+                            Khám phá <i className="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -236,120 +258,91 @@ const Home = () => {
         </div>
     </section>
 
-    <section class="ai-advisor-teaser">
-        <div class="container">
-            <div class="advisor-content">
-                <div class="advisor-icon">
-                    <i class="fas fa-robot"></i>
+    <section className="ai-advisor-teaser">
+        <div className="container">
+            <div className="advisor-content">
+                <div className="advisor-icon">
+                    <i className="fas fa-robot"></i>
                 </div>
-                <div class="advisor-text">
+                <div className="advisor-text">
                     <h2>Trợ Lý AI Du Lịch</h2>
                     <p>Để AI giúp bạn lên kế hoạch chuyến đi hoàn hảo với sở thích và ngân sách của bạn</p>
                 </div>
-                <a href="ai-advisor.html" class="btn-advisor">
-                    Tư vấn ngay <i class="fas fa-arrow-right"></i>
+                <a href="ai-advisor.html" className="btn-advisor">
+                    Tư vấn ngay <i className="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>
     </section>
 
-    <section class="reviews">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-tag">Đánh giá</span>
-                <h2 class="section-title">Khách Hàng Nói Gì</h2>
-                <p class="section-subtitle">Những trải nghiệm thực tế từ khách hàng</p>
+    <section className="reviews">
+        <div className="container">
+            <div className="section-header">
+                <span className="section-tag">Đánh giá</span>
+                <h2 className="section-title">Khách Hàng Nói Gì</h2>
+                <p className="section-subtitle">Những trải nghiệm thực tế từ khách hàng</p>
             </div>
             
-            <div class="reviews-slider">
-                <div class="review-card">
-                    <div class="review-rating">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <p class="review-text">"Chuyến đi Bà Nà thật tuyệt vời! Hướng dẫn viên nhiệt tình, lịch trình hợp lý. Gia đình tôi rất hài lòng."</p>
-                    <div class="review-author">
-                        <img src="https://i.pravatar.cc/150?img=1" alt="User"/>
-                        <div class="author-info">
-                            <h4>Nguyễn Văn An</h4>
-                            <p>Tour Bà Nà Hills - Tháng 12/2025</p>
+            <div className="reviews-slider">
+                {loading ? (
+                  <p>Đang tải đánh giá...</p>
+                ) : reviews.length > 0 ? (
+                  reviews.map((review, index) => (
+                    <div key={index} className="review-card">
+                        <div className="review-rating">
+                            {renderStars(review.numberStar)}
+                        </div>
+                        <p className="review-text">"{review.comment}"</p>
+                        <div className="review-author">
+                            <img 
+                              src={review.avatar} 
+                              alt={review.avatar}
+                            />
+                            <div className="author-info">
+                                <h4>{review.userName}</h4>
+                                <p>{review.tourName} - {new Date(review.createAt).toLocaleDateString('vi-VN')}</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-rating">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <p class="review-text">"Hạ Long đẹp không thể tả. Du thuyền 5 sao sang trọng, đồ ăn ngon. Xứng đáng từng đồng!"</p>
-                    <div class="review-author">
-                        <img src="https://i.pravatar.cc/150?img=2" alt="User"/>
-                        <div class="author-info">
-                            <h4>Trần Thị Bình</h4>
-                            <p>Du thuyền Hạ Long - Tháng 12/2025</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-rating">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="far fa-star"></i>
-                    </div>
-                    <p class="review-text">"Hội An về đêm thật lãng mạn. Chỉ tiếc là thời gian hơi ngắn, mong có tour 2 ngày."</p>
-                    <div class="review-author">
-                        <img src="https://i.pravatar.cc/150?img=3" alt="User"/>
-                        <div class="author-info">
-                            <h4>Lê Hoàng Long</h4>
-                            <p>Hội An đêm - Tháng 12/2025</p>
-                        </div>
-                    </div>
-                </div>
+                  ))
+                ) : (
+                  <p>Chưa có đánh giá nào.</p>
+                )}
             </div>
         </div>
-    </section>
+      </section>
 
-    <section class="cta">
-        <div class="container">
-            <div class="cta-content">
+    <section className="cta">
+        <div className="container">
+            <div className="cta-content">
                 <h2>Sẵn Sàng Cho Chuyến Đi?</h2>
                 <p>Đăng ký ngay để nhận ưu đãi đặc biệt và cập nhật tour mới nhất</p>
-                <div class="cta-form">
+                <div className="cta-form">
                     <input type="email" placeholder="Nhập email của bạn"/>
-                    <button class="btn-submit">Đăng ký</button>
+                    <button className="btn-submit">Đăng ký</button>
                 </div>
             </div>
         </div>
     </section>
 
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-column">
-                    <div class="footer-logo">
-                        <i class="fas fa-compass"></i>
+    <footer className="footer">
+        <div className="container">
+            <div className="footer-content">
+                <div className="footer-column">
+                    <div className="footer-logo">
+                        <i className="fas fa-compass"></i>
                         <span>VietTravel</span>
                     </div>
                     <p>Khám phá vẻ đẹp Việt Nam cùng chúng tôi. Mang đến những trải nghiệm du lịch đáng nhớ nhất.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
-                        <a href="#"><i class="fab fa-tiktok"></i></a>
+                    <div className="social-links">
+                        <a href="#"><i className="fab fa-facebook"></i></a>
+                        <a href="#"><i className="fab fa-instagram"></i></a>
+                        <a href="#"><i className="fab fa-youtube"></i></a>
+                        <a href="#"><i className="fab fa-tiktok"></i></a>
                     </div>
                 </div>
                 
-                <div class="footer-column">
+                <div className="footer-column">
                     <h4>Dịch vụ</h4>
                     <ul>
                         <li><a href="tours.html">Tour du lịch</a></li>
@@ -359,7 +352,7 @@ const Home = () => {
                     </ul>
                 </div>
                 
-                <div class="footer-column">
+                <div className="footer-column">
                     <h4>Hỗ trợ</h4>
                     <ul>
                         <li><a href="#">Trung tâm trợ giúp</a></li>
@@ -369,37 +362,36 @@ const Home = () => {
                     </ul>
                 </div>
                 
-                <div class="footer-column">
+                <div className="footer-column">
                     <h4>Liên hệ</h4>
-                    <ul class="contact-info">
+                    <ul className="contact-info">
                         <li>
-                            <i class="fas fa-phone"></i>
+                            <i className="fas fa-phone"></i>
                             <span>1900 1234</span>
                         </li>
                         <li>
-                            <i class="fas fa-envelope"></i>
+                            <i className="fas fa-envelope"></i>
                             <span>support@viettravel.com</span>
                         </li>
                         <li>
-                            <i class="fas fa-map-marker-alt"></i>
+                            <i className="fas fa-map-marker-alt"></i>
                             <span>Đà Nẵng, Việt Nam</span>
                         </li>
                     </ul>
                 </div>
             </div>
             
-            <div class="footer-bottom">
+            <div className="footer-bottom">
                 <p>&copy; 2026 VietTravel. All rights reserved.</p>
-                <div class="payment-methods">
-                    <i class="fab fa-cc-visa"></i>
-                    <i class="fab fa-cc-mastercard"></i>
-                    <i class="fab fa-cc-paypal"></i>
+                <div className="payment-methods">
+                    <i className="fab fa-cc-visa"></i>
+                    <i className="fab fa-cc-mastercard"></i>
+                    <i className="fab fa-cc-paypal"></i>
                 </div>
             </div>
         </div>
     </footer>
 
-      {/* Footer giữ nguyên */}
     </div>
   );
 };
