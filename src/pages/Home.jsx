@@ -15,7 +15,7 @@ const Home = () => {
         // Gọi cả 2 API cùng lúc
         const [toursRes, tourCountRes, userCountRes, reviewsRes] = await Promise.all([
           api.get('/tours/top5tour'),
-          api.get('/tours/count-tour'),
+          api.get('/tours/count-all-tour'),
           api.get('/users/count-user'),
           api.get('/reviews/top3review')
         ]);
