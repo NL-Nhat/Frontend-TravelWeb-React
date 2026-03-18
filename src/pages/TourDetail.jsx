@@ -17,12 +17,20 @@ const TourDetail = () => {
     const [mainImage, setMainImage] = useState('');
     const [activeTab, setActiveTab] = useState('overview');
     
-    // State cho Sidebar Đặt Tour
+    // 3. State cho Sidebar Đặt Tour
     const [selectedSchedule, setSelectedSchedule] = useState('');
     const [adultCount, setAdultCount] = useState(1);
     const [childCount, setChildCount] = useState(0);
 
-    // Fetch dữ liệu từ API
+    // 4. State cho Lịch trình chi tiết (Itinerary)
+    const [itinerary, setItinerary] = useState([]);
+    const [loadingItinerary, setLoadingItinerary] = useState(false);
+
+    // 5. State cho Đánh giá (Reviews)
+    const [reviews, setReviews] = useState([]);
+    const [loadingReviews, setLoadingReviews] = useState(false);
+
+    // Fetch dữ liệu Tour Detail từ API
     useEffect(() => {
         const fetchTourDetail = async () => {
             try {
@@ -31,7 +39,7 @@ const TourDetail = () => {
                 // Đặt ảnh chính mặc định là ảnh cover của tour
                 setMainImage(response.data.image || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200");
                 
-                // Chọn mặc định lịch trình đầu tiên nếu có
+                // Chọn mặc định lịch trình khởi hành đầu tiên nếu có
                 if (response.data.departureSchedules && response.data.departureSchedules.length > 0) {
                     setSelectedSchedule(response.data.departureSchedules[0].id);
                 }
@@ -46,6 +54,47 @@ const TourDetail = () => {
         fetchTourDetail();
     }, [id]);
 
+    // Fetch dữ liệu Lịch trình (Schedules) khi thay đổi selectedSchedule
+    useEffect(() => {
+        const fetchItinerary = async () => {
+            if (!selectedSchedule) return;
+            
+            setLoadingItinerary(true);
+            try {
+                // Gọi API lấy danh sách ScheduleResponseDTO theo id của DepartureSchedule
+                const response = await axiosClient.get(`/schedules/${selectedSchedule}`);
+                setItinerary(response.data);
+            } catch (err) {
+                console.error("Lỗi khi tải lịch trình chi tiết:", err);
+                setItinerary([]);
+            } finally {
+                setLoadingItinerary(false);
+            }
+        };
+
+        fetchItinerary();
+    }, [selectedSchedule]);
+
+    // Fetch dữ liệu Đánh giá (Reviews) của Tour
+    useEffect(() => {
+        const fetchReviews = async () => {
+            setLoadingReviews(true);
+            try {
+                const response = await axiosClient.get('/tours/all-review', {
+                    params: { id: id }
+                });
+                setReviews(response.data);
+            } catch (err) {
+                console.error("Lỗi khi tải đánh giá:", err);
+                setReviews([]);
+            } finally {
+                setLoadingReviews(false);
+            }
+        };
+
+        fetchReviews();
+    }, [id]);
+
     // Các hàm tiện ích
     const formatPrice = (price) => {
         if (!price) return '0đ';
@@ -56,6 +105,11 @@ const TourDetail = () => {
         if (!dateString) return '';
         const date = new Date(dateString);
         return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
+    };
+
+    const formatTime = (timeString) => {
+        if (!timeString) return '';
+        return timeString.substring(0, 5); // Cắt lấy "HH:mm" từ "HH:mm:ss"
     };
 
     const calculateTotal = () => {
@@ -98,7 +152,6 @@ const TourDetail = () => {
                             <div className="tour-gallery">
                                 <div className="main-image">
                                     <img src={mainImage} alt={tour.tourName} />
-                                    {/* Các nút prev/next cho gallery có thể thêm logic sau nếu cần */}
                                 </div>
                                 <div className="thumbnail-grid">
                                     {/* Ảnh đại diện mặc định */}
@@ -137,7 +190,6 @@ const TourDetail = () => {
                                 <h1 className="tour-title-main">{tour.tourName}</h1>
                                 <div className="tour-quick-info">
                                     <span><i className="fas fa-map-marker-alt"></i> {tour.city}</span>
-                                    {/* Lấy ngày kết thúc - ngày bắt đầu để tính số ngày (Demo logic) */}
                                     <span><i className="fas fa-clock"></i> Khám phá ngay</span>
                                     <span><i className="fas fa-star"></i> Đánh giá cao</span>
                                 </div>
@@ -156,7 +208,6 @@ const TourDetail = () => {
                                 <h2>Mô tả tour</h2>
                                 <p>{tour.describe}</p>
                                 
-                                {/* Phần Điểm nhấn & Bao gồm hiện tại để tĩnh vì API chưa có field này. Sau này bạn có thể map mảng vào nếu update Backend */}
                                 <h3>Điểm nhấn của tour</h3>
                                 <ul className="highlight-list">
                                     <li><i className="fas fa-check"></i> Trải nghiệm tuyệt vời tại {tour.city}</li>
@@ -176,14 +227,34 @@ const TourDetail = () => {
                                 </div>
                             </div>
 
-                            {/* Tab Content: Lịch trình (Tạm thời tĩnh do API chưa có list Itinerary) */}
+                            {/* Tab Content: Lịch trình */}
                             <div className={`tab-content ${activeTab === 'itinerary' ? 'active' : ''}`} id="itinerary">
                                 <h2>Lịch trình chi tiết</h2>
-                                <p>Đang cập nhật lịch trình chi tiết cho tour này...</p>
-                                {/* Dùng cấu trúc timeline HTML cũ của bạn ở đây nếu muốn hiển thị tĩnh */}
+                                {loadingItinerary ? (
+                                    <p>Đang tải lịch trình...</p>
+                                ) : itinerary.length > 0 ? (
+                                    <div className="itinerary-timeline">
+                                        {itinerary.map((schedule) => (
+                                            <div key={schedule.id} className="timeline-item">
+                                                <div className="timeline-marker">
+                                                    <i className="fas fa-circle"></i>
+                                                </div>
+                                                <div className="timeline-content">
+                                                    <h3>{formatTime(schedule.time)} - {schedule.work}</h3>
+                                                    <p style={{ color: 'var(--primary)', fontWeight: 'bold', marginBottom: '8px' }}>
+                                                        <i className="fas fa-calendar-day"></i> Ngày: {formatDate(schedule.date)}
+                                                    </p>
+                                                    <p>{schedule.describe}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p>Vui lòng chọn lịch khởi hành bên cột phải để xem lịch trình, hoặc hiện tại chưa có dữ liệu lịch trình cho ngày này.</p>
+                                )}
                             </div>
 
-                            {/* Tab Content: Lịch khởi hành (Dữ liệu từ API: DepartureScheduleResponseDTO) */}
+                            {/* Tab Content: Lịch khởi hành */}
                             <div className={`tab-content ${activeTab === 'schedule' ? 'active' : ''}`} id="schedule">
                                 <h2>Lịch khởi hành</h2>
                                 {tour.departureSchedules?.length > 0 ? (
@@ -200,7 +271,7 @@ const TourDetail = () => {
                                                     </div>
                                                     <div className="schedule-info">
                                                         <h4>Từ {formatDate(schedule.startDate)} đến {formatDate(schedule.endDate)}</h4>
-                                                        <p><i className="fas fa-clock"></i> Khởi hành lúc: {schedule.startTime}</p>
+                                                        <p><i className="fas fa-clock"></i> Khởi hành lúc: {formatTime(schedule.startTime)}</p>
                                                         <p><i className="fas fa-users"></i> Còn {availableSlots}/{schedule.maxGuest} chỗ</p>
                                                     </div>
                                                     <div className="schedule-price">
@@ -209,10 +280,11 @@ const TourDetail = () => {
                                                             className="btn-book-schedule"
                                                             onClick={() => {
                                                                 setSelectedSchedule(schedule.id);
-                                                                window.scrollTo({ top: 300, behavior: 'smooth' }); // Cuộn lên form
+                                                                setActiveTab('itinerary'); 
+                                                                window.scrollTo({ top: 400, behavior: 'smooth' });
                                                             }}
                                                         >
-                                                            Chọn ngày này
+                                                            Xem lịch trình
                                                         </button>
                                                     </div>
                                                 </div>
@@ -237,10 +309,39 @@ const TourDetail = () => {
                                             </div>
                                             <span className="score-count">{tour.numberOfReview || 0} đánh giá</span>
                                         </div>
-                                        {/* Phần rating breakdown tĩnh giữ nguyên theo thiết kế của bạn */}
                                     </div>
                                 </div>
-                                <p>Tính năng xem chi tiết bình luận đang được cập nhật...</p>
+                                
+                                {/* Danh sách Đánh giá */}
+                                {loadingReviews ? (
+                                    <p>Đang tải đánh giá...</p>
+                                ) : reviews.length > 0 ? (
+                                    <div className="reviews-list">
+                                        {reviews.map((review, index) => (
+                                            <div key={index} className="review-item">
+                                                <div className="review-header">
+                                                    <img 
+                                                        src={review.avatar || "https://i.pravatar.cc/150"} 
+                                                        alt="User" 
+                                                        className="user-avatar" 
+                                                    />
+                                                    <div className="review-user-info">
+                                                        <h4>{review.userName}</h4>
+                                                        <div className="review-rating">
+                                                            {[...Array(5)].map((_, i) => (
+                                                                <i key={i} className={i < review.numberStar ? "fas fa-star" : "far fa-star"}></i>
+                                                            ))}
+                                                        </div>
+                                                        <span className="review-date">{formatDate(review.createAt)}</span>
+                                                    </div>
+                                                </div>
+                                                <p className="review-comment">{review.comment}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p>Chưa có đánh giá nào cho tour này.</p>
+                                )}
                             </div>
 
                         </div>
@@ -263,7 +364,7 @@ const TourDetail = () => {
                                         <label><i className="fas fa-calendar"></i> Ngày khởi hành</label>
                                         <select 
                                             value={selectedSchedule} 
-                                            onChange={(e) => setSelectedSchedule(e.target.value)}
+                                            onChange={(e) => setSelectedSchedule(parseInt(e.target.value))}
                                         >
                                             <option value="" disabled>-- Chọn lịch khởi hành --</option>
                                             {tour.departureSchedules?.map(schedule => (
@@ -326,7 +427,6 @@ const TourDetail = () => {
                 </div>
             </main>
             
-            {/* Giữ nguyên Footer như index.html */}
             <footer className="footer">
                 <div className="container">
                     <div className="footer-content">
