@@ -163,7 +163,7 @@ const Home = () => {
                       <i className="far fa-heart"></i>
                     </button>
                     <div className="tour-overlay">
-                      <a href={`/tour-detail/${tour.id}`} className="btn-view">Xem chi tiết</a>
+                      <Link to={`/tour-detail/${tour.id}`} className="btn-view">Xem chi tiết</Link>
                     </div>
                   </div>
                   <div className="tour-content">
