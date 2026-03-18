@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,35 +13,36 @@ const Header = () => {
   }, []);
 
   return (
-    <header class="header">
-        <nav class="navbar">
-            <div class="container">
-                <div class="nav-content">
-                    <div class="logo">
-                        <i class="fas fa-compass"></i>
+    <header className="header">
+        <nav className="navbar">
+            <div className="container">
+                <div className="nav-content">
+                    <div className="logo">
+                        <i className="fas fa-compass"></i>
                         <span>VietTravel</span>
                     </div>
                     
-                    <div class="nav-menu">
-                        <a href="index.html" class="nav-link active">Trang chủ</a>
-                        <a href="tours.html" class="nav-link">Tour du lịch</a>
-                        <a href="ai-advisor.html" class="nav-link">AI Tư vấn</a>
-                        <a href="about.html" class="nav-link">Về chúng tôi</a>
+                    <div className="nav-menu">
+                        {/* 🌟 3. Thay thẻ <a> thành <Link to="..."> */}
+                        <Link to="/" className="nav-link active">Trang chủ</Link>
+                        <Link to="/tours" className="nav-link">Tour du lịch</Link>
+                        <Link to="/ai-advisor" className="nav-link">AI Tư vấn</Link>
+                        <Link to="/about" className="nav-link">Về chúng tôi</Link>
                     </div>
                     
-                    <div class="nav-actions">
-                        <a href="favorites.html" class="nav-icon">
-                            <i class="far fa-heart"></i>
-                            <span class="badge">3</span>
-                        </a>
-                        <a href="account.html" class="nav-icon">
-                            <i class="far fa-user"></i>
-                        </a>
-                        <button class="btn-primary">Đăng nhập</button>
+                    <div className="nav-actions">
+                        <Link to="/favorites" className="nav-icon">
+                            <i className="far fa-heart"></i>
+                            <span className="badge">3</span>
+                        </Link>
+                        <Link to="/account" className="nav-icon">
+                            <i className="far fa-user"></i>
+                        </Link>
+                        <button className="btn-primary">Đăng nhập</button>
                     </div>
                     
-                    <button class="mobile-menu-btn">
-                        <i class="fas fa-bars"></i>
+                    <button className="mobile-menu-btn">
+                        <i className="fas fa-bars"></i>
                     </button>
                 </div>
             </div>

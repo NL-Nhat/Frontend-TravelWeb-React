@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import api from '../services/api'; // Import instance axios bạn đã tạo
@@ -200,9 +201,9 @@ const Home = () => {
           </div>
           
           <div className="section-footer">
-            <a href="/tours" className="btn-secondary">
+            <Link to="/tours" className="btn-secondary">
               Xem tất cả tour <i className="fas fa-arrow-right"></i>
-            </a>
+            </Link>
           </div>
         </div>
       </section>
