@@ -1,45 +1,38 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axiosClient from '../services/api';
+import { Link } from 'react-router-dom';
 
 const Header = () => {
-    const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     
-    // Kiểm tra trạng thái đăng nhập từ localStorage
+    // Kiểm tra trạng thái
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [userAvatar, setUserAvatar] = useState(null);
 
     useEffect(() => {
-        const authStatus = localStorage.getItem('isAuthenticated');
-        if (authStatus === 'true') {
-            setIsAuthenticated(true);
-        }
+        const checkAuth = () => {
+            const authStatus = localStorage.getItem('isAuthenticated');
+            if (authStatus === 'true') {
+                setIsAuthenticated(true);
+                setUserAvatar(localStorage.getItem('userAvatar'));
+            } else {
+                setIsAuthenticated(false);
+                setUserAvatar(null);
+            }
+        };
+
+        checkAuth(); // Chạy lần đầu
+
+        // Lắng nghe sự kiện để cập nhật Avatar lập tức khi chuyển trang
+        window.addEventListener('avatarUpdated', checkAuth);
+        return () => window.removeEventListener('avatarUpdated', checkAuth);
     }, []);
 
-    // Hiệu ứng đổi màu Header khi cuộn chuột
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 100);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
-
-    // Hàm xử lý Đăng xuất
-    const handleLogout = async () => {
-        try {
-            // Gọi API logout để Backend xóa Cookie (maxAge = 0)
-            await axiosClient.post('/auth/logout');
-            
-            // Xóa cờ đăng nhập ở Frontend
-            localStorage.removeItem('isAuthenticated');
-            setIsAuthenticated(false);
-            
-            // Chuyển hướng về trang chủ
-            navigate('/');
-        } catch (error) {
-            console.error("Lỗi khi đăng xuất:", error);
-        }
-    };
 
     return (
         <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
@@ -64,22 +57,18 @@ const Header = () => {
                                 <span className="badge">3</span>
                             </Link>
 
-                            {/* Kiểm tra isAuthenticated: 
-                                Nếu đã đăng nhập -> Chuyển đến /account
-                                Nếu chưa đăng nhập -> Chuyển đến /login
-                            */}
-                            <Link to={isAuthenticated ? "/account" : "/login"} className="nav-icon">
-                                <i className="far fa-user"></i>
+                            {/* Click icon user: Chưa login -> /login, Đã login -> /account */}
+                            <Link to={isAuthenticated ? "/account" : "/login"} className="nav-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                                {isAuthenticated && userAvatar ? (
+                                    <img 
+                                        src={userAvatar} 
+                                        alt="Avatar" 
+                                        style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} 
+                                    />
+                                ) : (
+                                    <i className="far fa-user"></i>
+                                )}
                             </Link>
-
-                            {/* Nút Đăng nhập / Đăng xuất */}
-                            {isAuthenticated ? (
-                                <button className="btn-secondary" onClick={handleLogout}>Đăng xuất</button>
-                            ) : (
-                                <Link to="/login">
-                                    <button className="btn-primary">Đăng nhập</button>
-                                </Link>
-                            )}
                         </div>
                         
                         <button className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>

@@ -21,25 +21,17 @@ const Login = () => {
         setLoading(true);
 
         try {
-            // Gọi API Đăng nhập
-            const response = await axiosClient.post('/auth/login', {
+            await axiosClient.post('/auth/login', {
                 userName: userName,
                 passWord: passWord
             });
 
-            // Nếu Backend trả về thành công (Cookie sẽ tự động được set vì HttpOnly)
-            // Ta lưu một cờ vào localStorage để Frontend biết user đã đăng nhập
             localStorage.setItem('isAuthenticated', 'true');
-            
-            // Chuyển hướng về trang chủ
-            navigate('/');
-            
-            // Reload lại trang nhẹ để Header cập nhật trạng thái ngay lập tức
-            window.location.reload(); 
+            window.dispatchEvent(new Event('avatarUpdated'));
+            navigate('/account');
 
         } catch (err) {
             console.error("Lỗi đăng nhập:", err);
-            // Lấy message lỗi từ Backend trả về
             if (err.response && err.response.data) {
                 setError(err.response.data);
             } else {
