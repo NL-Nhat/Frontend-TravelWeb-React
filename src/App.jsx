@@ -5,6 +5,7 @@ import TourDetail from './pages/TourDetail';
 import Login from './pages/Login';
 import Register from './pages/Register ';
 import Account from './pages/Account';
+import AdminDashboard from './pages/admin/AdminDashboard';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/account" element={<Account />} />
+      <Route path="/admin" element={<AdminDashboard />} />
     </Routes>
   );
 }

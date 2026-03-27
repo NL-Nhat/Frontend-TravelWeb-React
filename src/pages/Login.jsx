@@ -1,10 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosClient from '../services/api';
 import '../styles/auth.css';
 
 const Login = () => {
     const navigate = useNavigate();
+
+    // Tự động chuyển hướng nếu người dùng đã đăng nhập từ trước
+    useEffect(() => {
+        if (localStorage.getItem('isAuthenticated') === 'true') {
+            const role = localStorage.getItem('userRole');
+            if (role === 'ROLE_ADMIN') {
+                navigate('/admin');
+            } else {
+                navigate('/account');
+            }
+        }
+    }, [navigate]);
     
     // State quản lý form
     const [userName, setUserName] = useState('');
@@ -21,19 +33,40 @@ const Login = () => {
         setLoading(true);
 
         try {
-            await axiosClient.post('/auth/login', {
+            const response = await axiosClient.post('/auth/login', {
                 userName: userName,
                 passWord: passWord
             });
 
+            // Lấy Role từ JSON response của Backend (VD: "ROLE_USER")
+            const userRole = response.data.role;
+
+            if (userRole === 'ROLE_HUONGDANVIEN') {
+                // Gọi API logout ngay lập tức để xóa HttpOnly Cookie vừa được set
+                await axiosClient.post('/auth/logout');
+                setError("Chức năng của Hướng dẫn viên chưa được phát triển!");
+                setLoading(false);
+                return;
+            }
+
+            // Lưu trạng thái đăng nhập và Role
             localStorage.setItem('isAuthenticated', 'true');
-            window.dispatchEvent(new Event('avatarUpdated'));
-            navigate('/account');
+            localStorage.setItem('userRole', userRole);
+            
+            // Kích hoạt event để Header (nếu có) tự cập nhật giao diện
+            window.dispatchEvent(new Event('authStatusChanged'));
+            
+            // Điều hướng dựa trên Role
+            if (userRole === 'ROLE_ADMIN') {
+                navigate('/admin');
+            } else {
+                navigate('/account');
+            }
 
         } catch (err) {
             console.error("Lỗi đăng nhập:", err);
             if (err.response && err.response.data) {
-                setError(err.response.data);
+                setError(typeof err.response.data === 'string' ? err.response.data : err.response.data.message);
             } else {
                 setError("Có lỗi xảy ra khi kết nối đến máy chủ.");
             }
@@ -76,7 +109,7 @@ const Login = () => {
                         <div className="slider-dots">
                             <span className="dot active"></span>
                             <span className="dot"></span>
-                            <span class="dot"></span>
+                            <span className="dot"></span>
                         </div>
                     </div>
                 </div>
