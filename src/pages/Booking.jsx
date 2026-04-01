@@ -12,6 +12,7 @@ const Booking = () => {
     // State lưu trữ dữ liệu
     const [tour, setTour] = useState(null);
     const [scheduleInfo, setScheduleInfo] = useState(null);
+    const [bookingResult, setBookingResult] = useState(null); //Lưu kết quả trả về từ API Đặt tour
     
     // State cho Form Đặt Tour (Trống hoàn toàn để người dùng tự nhập)
     const [formData, setFormData] = useState({
@@ -92,9 +93,10 @@ const Booking = () => {
                 note: formData.note
             };
 
-            await axiosClient.post('/bookings', payload);
+            // Gọi API lưu và nhận kết quả BookingResponseDTO
+            const response = await axiosClient.post('/bookings', payload);
+            setBookingResult(response.data); 
             
-            // Hiện Modal thành công
             setShowSuccessModal(true);
 
         } catch (err) {
@@ -327,7 +329,7 @@ const Booking = () => {
                             <button className="btn-secondary" onClick={() => navigate('/account')}>
                                 Xem chi tiết
                             </button>
-                            <button className="btn-primary" onClick={() => navigate('/payment')}>
+                            <button className="btn-primary" onClick={() => navigate('/payment', { state: { bookingInfo: bookingResult, tourImage: tour.image, tourCity: tour.city } })}>
                                 Thanh toán ngay
                             </button>
                         </div>
