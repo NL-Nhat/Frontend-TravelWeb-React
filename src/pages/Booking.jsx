@@ -1,0 +1,349 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
+import axiosClient from '../services/api';
+import Header from '../components/Header';
+import '../styles/booking.css'; // File CSS bạn đã cung cấp
+
+const Booking = () => {
+    const { id } = useParams(); // Lấy ID tour từ URL
+    const location = useLocation(); // Lấy dữ liệu được truyền từ trang TourDetail
+    const navigate = useNavigate();
+
+    // State lưu trữ dữ liệu
+    const [tour, setTour] = useState(null);
+    const [scheduleInfo, setScheduleInfo] = useState(null);
+    
+    // State cho Form Đặt Tour (Trống hoàn toàn để người dùng tự nhập)
+    const [formData, setFormData] = useState({
+        nameGuest: '',
+        phoneNumber: '',
+        email: '',
+        address: '', // Có trong UI nhưng không có trong DTO (sẽ bỏ qua khi gửi API)
+        doB: '',
+        gender: '',
+        note: ''
+    });
+
+    // State UI
+    const [loading, setLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+    // Dữ liệu từ trang chi tiết truyền qua (adultCount, childCount, scheduleId, total)
+    const bookingState = location.state;
+
+    useEffect(() => {
+        // Nếu người dùng vào thẳng link /booking/1 mà không qua trang chi tiết, đẩy về trang tour
+        if (!bookingState || !bookingState.scheduleId) {
+            navigate(`/tour-detail/${id}`);
+            return;
+        }
+
+        const fetchData = async () => {
+            try {
+                // Lấy thông tin Tour để hiển thị bên Sidebar Tóm tắt
+                const tourRes = await axiosClient.get(`/tours/${id}`);
+                setTour(tourRes.data);
+
+                // Tìm thông tin Lịch khởi hành đã chọn
+                if (tourRes.data.departureSchedules) {
+                    const schedule = tourRes.data.departureSchedules.find(s => s.id === bookingState.scheduleId);
+                    setScheduleInfo(schedule);
+                }
+
+            } catch (err) {
+                console.error("Lỗi khi tải dữ liệu đặt tour:", err);
+                setError('Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [id, bookingState, navigate]);
+
+    // Xử lý thay đổi input form
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+    };
+
+    // Hàm gọi API Xác nhận đặt tour
+    const handleConfirmBooking = async (e) => {
+        e.preventDefault();
+        setError('');
+        setIsSubmitting(true);
+
+        try {
+            
+            const payload = {
+                idDepartureSchedule: bookingState.scheduleId,
+                adultNumber: bookingState.adultCount,
+                childNumber: bookingState.childCount,
+                nameGuest: formData.nameGuest,
+                phoneNumber: formData.phoneNumber,
+                email: formData.email,
+                gender: formData.gender ? parseInt(formData.gender, 10) : null,
+                doB: formData.doB,
+                note: formData.note
+            };
+
+            await axiosClient.post('/bookings', payload);
+            
+            // Hiện Modal thành công
+            setShowSuccessModal(true);
+
+        } catch (err) {
+            console.error("Lỗi đặt tour:", err);
+            if (err.response && err.response.data) {
+                // Xử lý hiển thị lỗi validation từ backend
+                const errorData = err.response.data;
+                if (typeof errorData === 'object') {
+                    // Nếu là danh sách lỗi Bean Validation
+                    const errorMessages = Object.values(errorData).join(', ');
+                    setError(`Lỗi: ${errorMessages}`);
+                } else {
+                    setError(errorData);
+                }
+            } else {
+                setError('Đặt tour thất bại. Vui lòng thử lại sau!');
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Các hàm tiện ích format
+    const formatPrice = (price) => {
+        if (!price) return '0đ';
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
+    };
+
+    const formatTime = (timeString) => {
+        if (!timeString) return '';
+        return timeString.substring(0, 5);
+    };
+
+    if (loading) return <div><Header /><div style={{ textAlign: 'center', padding: '100px' }}><h2>Đang tải thông tin thanh toán...</h2></div></div>;
+    if (error && !tour) return <div><Header /><div style={{ textAlign: 'center', padding: '100px', color: 'red' }}><h2>{error}</h2></div></div>;
+
+    return (
+        <>
+            <Header />
+            <main className="booking-page">
+                <div className="container">
+                    <h1 className="page-title">Đặt Tour</h1>
+                    
+                    <div className="booking-steps">
+                        <div className="step active">
+                            <div className="step-number">1</div>
+                            <span>Thông tin</span>
+                        </div>
+                        <div className="step">
+                            <div className="step-number">2</div>
+                            <span>Thanh toán</span>
+                        </div>
+                        <div className="step">
+                            <div className="step-number">3</div>
+                            <span>Vé điện tử</span>
+                        </div>
+                    </div>
+
+                    <div className="booking-layout">
+                        {/* Left Side: Form Information */}
+                        <form className="booking-form-container" onSubmit={handleConfirmBooking}>
+                            <div className="form-section">
+                                <h2><i className="fas fa-user"></i> Thông tin người đặt</h2>
+                                <div className="form-row">
+                                    <div className="form-field">
+                                        <label>Họ và tên *</label>
+                                        <input 
+                                            type="text" 
+                                            name="nameGuest"
+                                            value={formData.nameGuest} 
+                                            onChange={handleInputChange} 
+                                            placeholder="Nhập họ tên" 
+                                            required 
+                                        />
+                                    </div>
+                                    <div className="form-field">
+                                        <label>Số điện thoại *</label>
+                                        <input 
+                                            type="tel" 
+                                            name="phoneNumber"
+                                            value={formData.phoneNumber} 
+                                            onChange={handleInputChange} 
+                                            placeholder="Nhập số điện thoại" 
+                                            required 
+                                        />
+                                    </div>
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-field">
+                                        <label>Email *</label>
+                                        <input 
+                                            type="email" 
+                                            name="email"
+                                            value={formData.email} 
+                                            onChange={handleInputChange} 
+                                            placeholder="Nhập email" 
+                                            required 
+                                        />
+                                    </div>
+                                    <div className="form-field">
+                                        <label>Địa chỉ</label>
+                                        <input 
+                                            type="text" 
+                                            name="address"
+                                            value={formData.address} 
+                                            onChange={handleInputChange} 
+                                            placeholder="Nhập địa chỉ" 
+                                        />
+                                    </div>
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-field">
+                                        <label>Ngày sinh *</label>
+                                        <input 
+                                            type="date" 
+                                            name="doB"
+                                            value={formData.doB} 
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-field">
+                                        <label>Giới tính *</label>
+                                        <select name="gender" value={formData.gender} onChange={handleInputChange} required>
+                                            <option value="">-- Chọn giới tính --</option>
+                                            <option value="1">Nam</option>
+                                            <option value="2">Nữ</option>
+                                            <option value="3">Khác</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="form-section">
+                                <h2><i className="fas fa-comment"></i> Ghi chú</h2>
+                                <textarea 
+                                    rows="4" 
+                                    name="note"
+                                    value={formData.note}
+                                    onChange={handleInputChange}
+                                    placeholder="Nhập ghi chú, yêu cầu đặc biệt..."
+                                ></textarea>
+                            </div>
+
+                            {/* Báo lỗi API */}
+                            {error && <div style={{ color: 'var(--danger)', marginBottom: '15px', padding: '10px', backgroundColor: '#ffebee', borderRadius: '8px' }}>{error}</div>}
+
+                            <div className="form-actions">
+                                <button type="button" className="btn-back" onClick={() => navigate(-1)}>
+                                    <i className="fas fa-arrow-left"></i> Quay lại
+                                </button>
+                                <button type="submit" className="btn-continue" disabled={isSubmitting}>
+                                    {isSubmitting ? "Đang xử lý..." : "Xác nhận đặt tour"}
+                                </button>
+                            </div>
+                        </form>
+
+                        {/* Right Side: Booking Summary */}
+                        <aside className="booking-summary">
+                            <div className="summary-card">
+                                <h3>Thông tin tour</h3>
+                                <img src={tour.image || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400"} alt="Tour" style={{ borderRadius: '8px', marginBottom: '15px' }} />
+                                <h4>{tour.tourName}</h4>
+                                <div className="summary-item">
+                                    <i className="fas fa-map-marker-alt"></i>
+                                    <span>{tour.city}</span>
+                                </div>
+                                <div className="summary-item">
+                                    <i className="fas fa-calendar"></i>
+                                    <span>{scheduleInfo ? formatDate(scheduleInfo.startDate) : ''}</span>
+                                </div>
+                                <div className="summary-item">
+                                    <i className="fas fa-clock"></i>
+                                    <span>{scheduleInfo ? formatTime(scheduleInfo.startTime) : ''}</span>
+                                </div>
+                                
+                                <div className="divider"></div>
+                                
+                                <h4>Chi tiết giá</h4>
+                                <div className="price-breakdown">
+                                    <div className="price-item">
+                                        <span>{bookingState.adultCount} x Người lớn</span>
+                                        <span>{formatPrice(bookingState.adultCount * tour.adultPrice)}</span>
+                                    </div>
+                                    {bookingState.childCount > 0 && (
+                                        <div className="price-item">
+                                            <span>{bookingState.childCount} x Trẻ em</span>
+                                            <span>{formatPrice(bookingState.childCount * tour.childPrice)}</span>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="divider"></div>
+                                
+                                <div className="total-summary">
+                                    <span>Tổng cộng:</span>
+                                    <span className="total-price">{formatPrice(bookingState.total)}</span>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </main>
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="modal" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
+                    <div className="modal-content success-modal" style={{ background: 'white', padding: '2rem', borderRadius: '16px', textAlign: 'center', maxWidth: '400px' }}>
+                        <div className="success-icon" style={{ fontSize: '4rem', color: 'var(--success)', marginBottom: '1rem' }}>
+                            <i className="fas fa-check-circle"></i>
+                        </div>
+                        <h2 style={{ marginBottom: '0.5rem' }}>Đặt tour thành công!</h2>
+                        <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem' }}>Cảm ơn bạn đã đặt tour tại VietTravel</p>
+                        
+                        <div className="booking-code" style={{ background: 'var(--bg-light)', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', fontWeight: 'bold' }}>
+                            <span>Thanh toán ngay để giữ chỗ</span>
+                        </div>
+                        
+                        <p className="success-note" style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                            Thông tin đặt tour đã được lưu. Vui lòng thanh toán để xác nhận hành trình của bạn.
+                        </p>
+                        
+                        <div className="success-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                            <button className="btn-secondary" onClick={() => navigate('/account')}>
+                                Xem chi tiết
+                            </button>
+                            <button className="btn-primary" onClick={() => navigate('/payment')}>
+                                Thanh toán ngay
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <footer className="footer">
+                <div className="container">
+                    <div className="footer-bottom">
+                        <p>&copy; 2026 VietTravel. All rights reserved.</p>
+                    </div>
+                </div>
+            </footer>
+        </>
+    );
+};
+
+export default Booking;

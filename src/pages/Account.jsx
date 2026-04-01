@@ -255,7 +255,7 @@ const Account = () => {
                                             <div className="form-field">
                                                 <label>Số điện thoại</label>
                                                 <input 
-                                                    type="tel" 
+                                                    type="tel"  
                                                     name="phoneNumber" 
                                                     value={formData.phoneNumber} 
                                                     onChange={handleInputChange} 

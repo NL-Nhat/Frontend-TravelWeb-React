@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom'; // Thêm useLocation
 
 const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const location = useLocation(); // Lấy đường dẫn URL hiện tại
     
     // Kiểm tra trạng thái
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,6 +35,20 @@ const Header = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Hàm kiểm tra xem menu nào đang active
+    const checkActive = (path) => {
+        // Nếu là trang chủ, path phải giống hệt '/'
+        if (path === '/') {
+            return location.pathname === '/';
+        }
+        // Nếu là trang Tour, giữ active cho cả danh sách tour và chi tiết tour
+        if (path === '/tours') {
+            return location.pathname.startsWith('/tours') || location.pathname.startsWith('/tour-detail');
+        }
+        // Các trang khác
+        return location.pathname.startsWith(path);
+    };
+
     return (
         <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
             <nav className="navbar">
@@ -45,10 +60,10 @@ const Header = () => {
                         </Link>
                         
                         <div className="nav-menu">
-                            <Link to="/" className="nav-link active">Trang chủ</Link>
-                            <Link to="/tours" className="nav-link">Tour du lịch</Link>
-                            <Link to="/ai-advisor" className="nav-link">AI Tư vấn</Link>
-                            <Link to="/about" className="nav-link">Về chúng tôi</Link>
+                            <Link to="/" className={`nav-link ${checkActive('/') ? 'active' : ''}`}>Trang chủ</Link>
+                            <Link to="/tours" className={`nav-link ${checkActive('/tours') ? 'active' : ''}`}>Tour du lịch</Link>
+                            <Link to="/ai-advisor" className={`nav-link ${checkActive('/ai-advisor') ? 'active' : ''}`}>AI Tư vấn</Link>
+                            <Link to="/about" className={`nav-link ${checkActive('/about') ? 'active' : ''}`}>Về chúng tôi</Link>
                         </div>
                         
                         <div className="nav-actions">
