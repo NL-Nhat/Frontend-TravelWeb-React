@@ -326,7 +326,7 @@ const TourDetail = () => {
                                                         className="user-avatar" 
                                                     />
                                                     <div className="review-user-info">
-                                                        <h4>{review.userName}</h4>
+                                                        <h4>{review.fullName}</h4>
                                                         <div className="review-rating">
                                                             {[...Array(5)].map((_, i) => (
                                                                 <i key={i} className={i < review.numberStar ? "fas fa-star" : "far fa-star"}></i>
