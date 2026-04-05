@@ -120,9 +120,9 @@ const TourDetail = () => {
     };
 
     const handleBooking = () => {
-        // Chuyển hướng sang trang booking kèm state dữ liệu
+        // Chuyển hướng sang trang booking kèm state dữ liệu id lịch khởi hành, số lượng khách
         navigate(`/booking/${id}`, { 
-            state: { scheduleId: selectedSchedule, adultCount, childCount, total: calculateTotal() } 
+            state: { scheduleId: selectedSchedule, adultCount, childCount } 
         });
     };
 
@@ -326,7 +326,7 @@ const TourDetail = () => {
                                                         className="user-avatar" 
                                                     />
                                                     <div className="review-user-info">
-                                                        <h4>{review.fullName}</h4>
+                                                        <h4>{review.userName}</h4>
                                                         <div className="review-rating">
                                                             {[...Array(5)].map((_, i) => (
                                                                 <i key={i} className={i < review.numberStar ? "fas fa-star" : "far fa-star"}></i>
