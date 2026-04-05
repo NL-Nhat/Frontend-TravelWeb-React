@@ -3,17 +3,22 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import axiosClient from '../services/api';
 import Header from '../components/Header';
 import '../styles/booking.css'; 
-import '../styles/payment.css'; // Tên file theo HTML của bạn
+import '../styles/payment.css'; 
 
 const Payment = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { bookingInfo, tourImage, tourCity } = location.state || {};
+    
+    // Nhận id booking từ trang Đặt Tour truyền sang
+    const { bookingId } = location.state || {};
 
     const [paymentMethods, setPaymentMethods] = useState([]);
     const [selectedMethod, setSelectedMethod] = useState(null);
     const [acceptTerms, setAcceptTerms] = useState(false);
     
+    // State lưu chi tiết đặt tour lấy từ API
+    const [bookingDetail, setBookingDetail] = useState(null);
+
     const [loading, setLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState('');
@@ -22,32 +27,38 @@ const Payment = () => {
     const [ticketInfo, setTicketInfo] = useState(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-    // Fetch Danh sách phương thức thanh toán
+    // Fetch Danh sách phương thức thanh toán & Chi tiết Booking
     useEffect(() => {
-        if (!bookingInfo) {
-            navigate('/tours'); // Đá về danh sách nếu truy cập trực tiếp
+        if (!bookingId) {
+            navigate('/tours'); // Đá về danh sách tour nếu truy cập trực tiếp không có ID
             return;
         }
 
-        const fetchPaymentMethods = async () => {
+        const fetchData = async () => {
             try {
-                const response = await axiosClient.get('/paymentmethods', {
+                // Gọi API lấy danh sách phương thức thanh toán
+                const methodsRes = await axiosClient.get('/paymentmethods', {
                     params: { status: 'Hoạt động' }
                 });
-                setPaymentMethods(response.data);
-                if (response.data.length > 0) {
-                    setSelectedMethod(response.data[0].id); // Chọn phương thức đầu tiên mặc định
+                setPaymentMethods(methodsRes.data);
+                if (methodsRes.data.length > 0) {
+                    setSelectedMethod(methodsRes.data[0].id); // Chọn phương thức đầu tiên mặc định
                 }
+
+                // Gọi API lấy chi tiết đặt tour
+                const bookingRes = await axiosClient.get(`/bookings/${bookingId}`);
+                setBookingDetail(bookingRes.data);
+
             } catch (err) {
-                console.error("Lỗi tải phương thức thanh toán:", err);
-                setError('Không thể tải danh sách phương thức thanh toán.');
+                console.error("Lỗi tải dữ liệu thanh toán:", err);
+                setError('Không thể tải dữ liệu thanh toán. Vui lòng thử lại sau.');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchPaymentMethods();
-    }, [bookingInfo, navigate]);
+        fetchData();
+    }, [bookingId, navigate]);
 
     // Xử lý Gửi thanh toán
     const handleProcessPayment = async () => {
@@ -65,11 +76,12 @@ const Payment = () => {
 
         try {
             const payload = {
-                idBooking: bookingInfo.id,
+                idBooking: bookingId,
                 idMethod: selectedMethod,
-                totalAmount: bookingInfo.totalAmount
+                totalAmount: bookingDetail.totalAmount
             };
 
+            // Gọi API thanh toán
             const response = await axiosClient.post('/payments', payload);
             
             // response.data có dạng { data: InfoTicketQRResponseDTO, message: "Thanh toán thành công" }
@@ -115,10 +127,14 @@ const Payment = () => {
     };
 
     if (loading) return <div><Header /><div style={{ textAlign: 'center', padding: '100px' }}><h2>Đang tải cổng thanh toán...</h2></div></div>;
+    if (error && !bookingDetail) return <div><Header /><div style={{ textAlign: 'center', padding: '100px', color: 'red' }}><h2>{error}</h2></div></div>;
 
     // Xác định tên của phương thức đang chọn để hiện nội dung tương ứng
     const selectedMethodObj = paymentMethods.find(m => m.id === selectedMethod);
     const selectedMethodName = selectedMethodObj ? selectedMethodObj.nameMethod.toLowerCase() : '';
+
+    // Lấy dữ liệu DTO con ra cho code gọn gàng
+    const infoTour = bookingDetail?.infoBookingResponseDTO;
 
     return (
         <>
@@ -198,8 +214,8 @@ const Payment = () => {
                                         </div>
                                         <div className="bank-item">
                                             <span className="bank-label">Nội dung:</span>
-                                            <strong>DATTOUR {bookingInfo.idTicket}</strong>
-                                            <button className="btn-copy" onClick={() => navigator.clipboard.writeText(`DATTOUR ${bookingInfo.idTicket}`)}>
+                                            <strong>DATTOUR {bookingId}</strong>
+                                            <button className="btn-copy" onClick={() => navigator.clipboard.writeText(`DATTOUR ${bookingId}`)}>
                                                 <i className="fas fa-copy"></i>
                                             </button>
                                         </div>
@@ -247,19 +263,19 @@ const Payment = () => {
                         <aside className="booking-summary">
                             <div className="summary-card">
                                 <h3>Thông tin tour</h3>
-                                <img src={tourImage || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400"} alt="Tour" style={{ borderRadius: '8px', marginBottom: '15px' }} />
-                                <h4>{bookingInfo.tourName}</h4>
+                                <img src={infoTour?.image || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400"} alt="Tour" style={{ borderRadius: '8px', marginBottom: '15px' }} />
+                                <h4>{infoTour?.tourName}</h4>
                                 <div className="summary-item">
                                     <i className="fas fa-map-marker-alt"></i>
-                                    <span>{tourCity || 'Đà Nẵng'}</span>
+                                    <span>{infoTour?.city}</span>
                                 </div>
                                 <div className="summary-item">
                                     <i className="fas fa-calendar"></i>
-                                    <span>{formatDate(bookingInfo.startDate)}</span>
+                                    <span>{infoTour ? formatDate(infoTour.startDate) : ''}</span>
                                 </div>
                                 <div className="summary-item">
                                     <i className="fas fa-clock"></i>
-                                    <span>{formatTime(bookingInfo.startTime)}</span>
+                                    <span>{infoTour ? formatTime(infoTour.startTime) : ''}</span>
                                 </div>
                                 
                                 <div className="divider"></div>
@@ -267,18 +283,38 @@ const Payment = () => {
                                 <h4>Khách hàng</h4>
                                 <div className="summary-item">
                                     <i className="fas fa-user"></i>
-                                    <span>{bookingInfo.nameGuest}</span>
+                                    <span>{bookingDetail?.nameGuest}</span>
                                 </div>
                                 <div className="summary-item">
                                     <i className="fas fa-phone"></i>
-                                    <span>{bookingInfo.phoneNumber}</span>
+                                    <span>{bookingDetail?.phoneNumber}</span>
+                                </div>
+                                <div className="summary-item">
+                                    <i className="fas fa-envelope"></i>
+                                    <span>{bookingDetail?.email}</span>
                                 </div>
                                 
                                 <div className="divider"></div>
                                 
+                                <h4>Chi tiết giá</h4>
+                                <div className="price-breakdown">
+                                    <div className="price-item">
+                                        <span>{bookingDetail?.adultNumber} x Người lớn</span>
+                                        <span>{formatPrice(bookingDetail?.adultNumber * infoTour?.adultPrice)}</span>
+                                    </div>
+                                    {bookingDetail?.childNumber > 0 && (
+                                        <div className="price-item">
+                                            <span>{bookingDetail?.childNumber} x Trẻ em</span>
+                                            <span>{formatPrice(bookingDetail?.childNumber * infoTour?.childPrice)}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="divider"></div>
+                                
                                 <div className="total-summary">
                                     <span>Tổng cần thanh toán:</span>
-                                    <span className="total-price">{formatPrice(bookingInfo.totalAmount)}</span>
+                                    <span className="total-price">{formatPrice(bookingDetail?.totalAmount)}</span>
                                 </div>
                             </div>
                         </aside>
@@ -317,7 +353,7 @@ const Payment = () => {
                             <button className="btn-secondary" onClick={() => navigate('/')}>
                                 Về trang chủ
                             </button>
-                            <button className="btn-primary" onClick={() => navigate('/account')}>
+                            <button className="btn-primary" onClick={() => navigate('/account', { state: { bookingId: ticketInfo.idBooking } })}>
                                 Xem Tour Của Tôi
                             </button>
                         </div>

@@ -300,7 +300,7 @@ const Home = () => {
                               alt={review.avatar}
                             />
                             <div className="author-info">
-                                <h4>{review.userName}</h4>
+                                <h4>{review.fullName}</h4>
                                 <p>{review.tourName} - {new Date(review.createAt).toLocaleDateString('vi-VN')}</p>
                             </div>
                         </div>

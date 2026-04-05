@@ -179,7 +179,6 @@ const Account = () => {
                                 <a href="#bookings" className="menu-item">
                                     <i className="fas fa-ticket-alt"></i>
                                     <span>Tour đã đặt</span>
-                                    <span className="badge">0</span>
                                 </a>
                                 <a href="#favorites" className="menu-item">
                                     <i className="fas fa-heart"></i>
