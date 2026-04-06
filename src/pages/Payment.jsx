@@ -354,7 +354,7 @@ const Payment = () => {
                                 Về trang chủ
                             </button>
                             <button className="btn-primary" onClick={() => navigate('/booking-detail', { state: { bookingId: ticketInfo.idBooking } })}>
-                                Xem Tour Của Tôi
+                                Xem chi tiết đặt tour
                             </button>
                         </div>
                     </div>

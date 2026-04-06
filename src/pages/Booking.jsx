@@ -298,7 +298,7 @@ const Booking = () => {
                                 
                                 <div className="total-summary">
                                     <span>Tổng cộng:</span>
-                                    <span className="total-price">{formatPrice(totalAmount)}</span>
+                                    <span className="booking-total-price">{formatPrice(totalAmount)}</span>
                                 </div>
                             </div>
                         </aside>
@@ -325,8 +325,8 @@ const Booking = () => {
                         </p>
                         
                         <div className="success-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                            <button type="button" className="btn-secondary" onClick={() => navigate('/account', { state: { bookingId: bookingId } })}>
-                                Xem chi tiết
+                            <button type="button" className="btn-secondary" onClick={() => navigate('/booking-detail', { state: { bookingId: bookingId } })}>
+                                Xem chi tiết đặt tour
                             </button>
                             <button type="button" className="btn-primary" onClick={() => navigate('/payment', { state: { bookingId: bookingId } })}>
                                 Thanh toán ngay

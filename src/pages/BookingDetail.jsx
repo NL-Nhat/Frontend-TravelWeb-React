@@ -9,7 +9,7 @@ const BookingDetail = () => {
     const params = useParams();
     const location = useLocation();
     const navigate = useNavigate();
-    
+
     const bookingId = params.id || location.state?.bookingId;
     const qrCanvasRef = useRef(null);
 
@@ -54,7 +54,7 @@ const BookingDetail = () => {
                 canvas.height = img.height;
                 ctx.drawImage(img, 0, 0);
             };
-            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${bookingDetail.idTicket}`;
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(bookingDetail.idTicket)}`;
         }
     }, [bookingDetail]);
 
@@ -73,9 +73,9 @@ const BookingDetail = () => {
     const formatDateTime = (dateTimeString) => {
         if (!dateTimeString) return '';
         const date = new Date(dateTimeString);
-        return new Intl.DateTimeFormat('vi-VN', { 
-            day: '2-digit', month: '2-digit', year: 'numeric', 
-            hour: '2-digit', minute: '2-digit' 
+        return new Intl.DateTimeFormat('vi-VN', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
         }).format(date);
     };
 
@@ -89,7 +89,7 @@ const BookingDetail = () => {
     };
 
     const handleCancelBooking = () => {
-        if(window.confirm('Bạn có chắc chắn muốn hủy tour này không?')) {
+        if (window.confirm('Bạn có chắc chắn muốn hủy tour này không?')) {
             // Viết logic gọi API hủy tour ở đây nếu có
             alert('Tính năng hủy tour đang được cập nhật!');
         }
@@ -99,12 +99,12 @@ const BookingDetail = () => {
     if (error || !bookingDetail) return <div><Header /><div style={{ textAlign: 'center', padding: '100px', color: 'red' }}><h2>{error || "Không tìm thấy dữ liệu"}</h2></div></div>;
 
     // Phân tách dữ liệu từ DTO để dễ code
-    const infoTour = bookingDetail.infoBookingResponseDTO;
+    const infoTour = bookingDetail.bookingResponseDTO?.infoBookingResponseDTO;
     const bookingInfo = bookingDetail.bookingResponseDTO;
     const guide = bookingDetail.huongDanVien;
     const payment = bookingDetail.payment;
     const schedules = bookingDetail.scheduleResponseDTOs || [];
-    
+
     const isPaid = bookingDetail.paymentStatus === "Đã thanh toán";
 
     return (
@@ -114,7 +114,7 @@ const BookingDetail = () => {
                 <div className="container">
                     {/* Back Button */}
                     <div className="page-nav">
-                        <Link to="/account" className="btn-back">
+                        <Link to="/account" className="dbooking-btn-back">
                             <i className="fas fa-arrow-left"></i>
                             Quay lại danh sách đặt tour
                         </Link>
@@ -127,15 +127,24 @@ const BookingDetail = () => {
                                 <i className={isPaid ? "fas fa-check-circle" : "fas fa-clock"}></i>
                                 <div>
                                     <span className="status-label">Trạng thái thanh toán</span>
-                                    <h2 className="status-text">{bookingDetail.paymentStatus || 'Chưa xác định'}</h2>
+                                    <h2 className="status-text">{bookingDetail?.paymentStatus || 'Chưa xác định'}</h2>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="header-actions">
+                        <div className="header-actions" style={{ display: 'flex', gap: '1rem' }}>
+                            {!isPaid && (
+                                <button
+                                    className="btn-primary"
+                                    onClick={() => navigate('/payment', { state: { bookingId: bookingId } })}
+                                >
+                                    <i className="fas fa-credit-card" style={{ marginRight: '8px' }}></i>
+                                    Thanh toán ngay
+                                </button>
+                            )}
                             <button className="btn-action danger" onClick={handleCancelBooking}>
                                 <i className="fas fa-times-circle"></i>
-                                Hủy tour 
+                                Hủy tour
                             </button>
                         </div>
                     </div>
@@ -143,7 +152,7 @@ const BookingDetail = () => {
                     <div className="booking-content">
                         {/* Left Column */}
                         <div className="main-content">
-                            
+
                             {/* E-Ticket Section with QR Code */}
                             {isPaid && (
                                 <div className="ticket-section">
@@ -151,7 +160,7 @@ const BookingDetail = () => {
                                         <h3><i className="fas fa-ticket-alt"></i> Vé điện tử</h3>
                                         <span className="ticket-badge">E-TICKET</span>
                                     </div>
-                                    
+
                                     <div className="ticket-container">
                                         <div className="e-ticket">
                                             {/* Top Section */}
@@ -177,9 +186,14 @@ const BookingDetail = () => {
                                                 </p>
                                             </div>
 
-                                            <div className="header-actions" style={{justifyContent: 'center', marginTop: '1rem'}}>
+                                            <div className="header-actions" style={{ justifyContent: 'center', marginTop: '1rem' }}>
                                                 <button className="btn-action" onClick={handlePrint}>
-                                                    <i className="fas fa-print"></i> In vé
+                                                    <i className="fas fa-print"></i> 
+                                                    In vé
+                                                </button>
+                                                <button class="btn-action" onclick="downloadTicket()">
+                                                    <i class="fas fa-download"></i>
+                                                    Tải vé
                                                 </button>
                                             </div>
                                         </div>
@@ -189,7 +203,7 @@ const BookingDetail = () => {
 
                             {/* Passenger Info */}
                             <div className="detail-section">
-                                <h3><i className="fas fa-users"></i> Thông tin hành khách đại diện</h3>
+                                <h3><i className="fas fa-users"></i> Thông tin hành khách</h3>
 
                                 <div className="passenger-card">
                                     <div className="passenger-name">
@@ -212,93 +226,27 @@ const BookingDetail = () => {
                                     </div>
                                 </div>
                             </div>
-                            
-                            {/* Tour Details */}
-                            <div className="detail-section">
-                                <h3><i className="fas fa-info-circle"></i> Thông tin chi tiết tour</h3>
-                                
-                                <div className="tour-card">
-                                    {/* LEFT */}
-                                    <div className="tour-left">
-                                        <img src={infoTour?.image || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800"} alt="Tour" id="tourImage" />
-                                        
-                                        <div className="tour-content">
-                                            <h2>{infoTour?.tourName}</h2>
-                                            <p className="tour-description">{infoTour?.city}</p>
-                                        </div>
-
-                                        <Link to={`/tour-detail/${bookingDetail.idTour}`} className="btn-contact-guide" style={{ textAlign: 'center' }}>
-                                            Xem chi tiết tour
-                                        </Link>
-                                    </div>
-
-                                    {/* RIGHT */}
-                                    <div className="tour-right">
-                                        <h3><i className="fas fa-calendar-alt"></i> Lịch khởi hành</h3>
-
-                                        <div className="schedule-item">
-                                            <label>Ngày bắt đầu</label>
-                                            <p>{formatDate(infoTour?.startDate)}</p>
-                                        </div>
-
-                                        <div className="schedule-item">
-                                            <label>Ngày kết thúc</label>
-                                            <p>{formatDate(infoTour?.endDate)}</p>
-                                        </div>
-
-                                        <div className="schedule-item">
-                                            <label>Giờ bắt đầu</label>
-                                            <p>{formatTime(infoTour?.startTime)}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Itinerary */}
-                            <div className="detail-section">
-                                <h3><i className="fas fa-route"></i> Lịch trình chi tiết</h3>
-                                
-                                <div className="itinerary-timeline">
-                                    {schedules.length > 0 ? (
-                                        schedules.map((schedule) => (
-                                            <div key={schedule.id} className="timeline-item">
-                                                <div className="timeline-time">{formatTime(schedule.time)}</div>
-                                                <div className="timeline-content">
-                                                    <h4>{schedule.work}</h4>
-                                                    <p style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                                                        <i className="fas fa-calendar-day"></i> Ngày: {formatDate(schedule.date)}
-                                                    </p>
-                                                    <p>{schedule.describe}</p>
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p>Chưa có thông tin lịch trình chi tiết.</p>
-                                    )}
-                                </div>
-                            </div>
                         </div>
-
                         {/* Right Sidebar */}
                         <aside className="sidebar-content">
-                            
+
                             {/* Booking Summary */}
-                            <div className="summary-card">
+                            <div className="dbooking-summary-card">
                                 <h3>Thông tin đặt tour</h3>
-                                <div className="summary-item">
+                                <div className="dbooking-summary-item">
                                     <span className="label">Ngày đặt:</span>
                                     <span className="value">{formatDateTime(bookingDetail.bookedDate)}</span>
                                 </div>
 
-                                <div className="summary-item">
+                                <div className="dbooking-summary-item">
                                     <span className="label">Trạng thái đặt:</span>
                                     <span className="value">{bookingDetail.bookingStatus}</span>
                                 </div>
 
-                                <div className="summary-item">
+                                <div className="dbooking-summary-item">
                                     <span className="label">Trạng thái thanh toán:</span>
                                     <span className={`value ${isPaid ? 'text-success' : 'text-warning'}`} style={{ color: isPaid ? 'var(--success)' : 'var(--primary)' }}>
-                                        {bookingDetail.paymentStatus}
+                                        {bookingDetail?.paymentStatus}
                                     </span>
                                 </div>
 
@@ -308,7 +256,7 @@ const BookingDetail = () => {
                                     <h4>Chi tiết thanh toán</h4>
                                     <div className="price-row">
                                         <span>{bookingInfo?.adultNumber} x Người lớn</span>
-                                        <span>{formatPrice(bookingInfo?.adultNumber * infoTour?.adultPrice)}</span>
+                                        <span>{formatPrice((bookingInfo?.adultNumber || 0) * (infoTour?.adultPrice || 0))}</span>
                                     </div>
                                     {bookingInfo?.childNumber > 0 && (
                                         <div className="price-row">
@@ -316,7 +264,7 @@ const BookingDetail = () => {
                                             <span>{formatPrice(bookingInfo?.childNumber * infoTour?.childPrice)}</span>
                                         </div>
                                     )}
-                            
+
                                     <div className="price-total">
                                         <div>
                                             <strong>Tổng tiền:</strong>
@@ -374,7 +322,71 @@ const BookingDetail = () => {
                                 )}
                             </div>
                         </aside>
-                        
+                    </div>
+
+                    {/* Tour Details */}
+                    <div className="detail-section">
+                        <h3><i className="fas fa-info-circle"></i> Thông tin chi tiết tour</h3>
+
+                        <div className="dbooking-tour-card">
+                            {/* LEFT */}
+                            <div className="tour-left">
+                                <img src={infoTour?.image || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800"} alt="Tour" id="tourImage" />
+
+                                <div className="tour-content">
+                                    <h2>{infoTour?.tourName}</h2>
+                                    <p className="tour-description">{infoTour?.city}</p>
+                                </div>
+
+                                <Link to={`/tour-detail/${bookingDetail.idTour}`} className="btn-contact-guide" style={{ textAlign: 'center' }}>
+                                    Xem chi tiết tour
+                                </Link>
+                            </div>
+
+                            {/* RIGHT */}
+                            <div className="tour-right">
+                                <h3><i className="fas fa-calendar-alt"></i> Lịch khởi hành</h3>
+
+                                <div className="dbooking-schedule-item">
+                                    <label>Ngày bắt đầu</label>
+                                    <p>{formatDate(infoTour?.startDate)}</p>
+                                </div>
+
+                                <div className="dbooking-schedule-item">
+                                    <label>Ngày kết thúc</label>
+                                    <p>{formatDate(infoTour?.endDate)}</p>
+                                </div>
+
+                                <div className="dbooking-schedule-item">
+                                    <label>Giờ bắt đầu</label>
+                                    <p>{formatTime(infoTour?.startTime)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Itinerary */}
+                    <div className="detail-section">
+                        <h3><i className="fas fa-route"></i> Lịch trình chi tiết</h3>
+
+                        <div className="dbooking-itinerary-timeline">
+                            {schedules.length > 0 ? (
+                                schedules.map((schedule) => (
+                                    <div key={schedule.id} className="dbooking-timeline-item">
+                                        <div className="timeline-time">{formatTime(schedule.time)}</div>
+                                        <div className="timeline-content">
+                                            <h4>{schedule.work}</h4>
+                                            <p style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                                                <i className="fas fa-calendar-day"></i> Ngày: {formatDate(schedule.date)}
+                                            </p>
+                                            <p>{schedule.describe}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p>Chưa có thông tin lịch trình chi tiết.</p>
+                            )}
+                        </div>
                     </div>
                 </div>
             </main>
