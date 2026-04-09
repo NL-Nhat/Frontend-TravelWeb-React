@@ -9,6 +9,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import Booking from './pages/Booking';
 import Payment from './pages/Payment';
 import BookingDetail from './pages/BookingDetail';
+import BookingHistory from './pages/BookingHistory';
 
 function App() {
   return (
@@ -18,7 +19,8 @@ function App() {
       <Route path="/tour-detail/:id" element={<TourDetail />} />
       <Route path="/booking/:id" element={<Booking />} />
       <Route path="/payment" element={<Payment />} />
-      <Route path="/booking-detail" element={<BookingDetail />} />
+      <Route path="/booking-detail/:id" element={<BookingDetail />} />
+      <Route path="/booking-history" element={<BookingHistory />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/account" element={<Account />} />

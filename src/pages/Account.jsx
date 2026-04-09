@@ -176,17 +176,13 @@ const Account = () => {
                                     <i className="fas fa-user"></i>
                                     <span>Thông tin cá nhân</span>
                                 </a>
-                                <a href="#bookings" className="menu-item">
-                                    <i className="fas fa-ticket-alt"></i>
-                                    <span>Tour đã đặt</span>
-                                </a>
+                                <Link to="/booking-history" className="menu-item">
+                                    <i className="fas fa-clock"></i>
+                                    <span>Lịch sử đặt tour</span>
+                                </Link>
                                 <a href="#favorites" className="menu-item">
                                     <i className="fas fa-heart"></i>
                                     <span>Yêu thích</span>
-                                </a>
-                                <a href="#reviews" className="menu-item">
-                                    <i className="fas fa-star"></i>
-                                    <span>Đánh giá</span>
                                 </a>
                                 <a href="#ai-history" className="menu-item">
                                     <i className="fas fa-robot"></i>
