@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosClient from '../services/api';
 import Header from '../components/Header';
-import '../styles/account.css';
+import styles from '../styles/account.module.css';
 
 const Account = () => {
+    const cx = (...classes) => classes.map((name) => styles[name] || name).join(' ');
     const navigate = useNavigate();
     const fileInputRef = useRef(null); // Reference để kích hoạt input file ẩn
 
@@ -160,39 +161,39 @@ const Account = () => {
     return (
         <>
             <Header />
-            <main className="account-page">
+            <main className={styles['account-page']}>
                 <div className="container">
-                    <div className="account-layout">
+                    <div className={styles['account-layout']}>
                         {/* Sidebar Menu */}
-                        <aside className="account-sidebar">
-                            <div className="user-profile">
-                                <img src={previewAvatar} alt="Avatar" className="profile-avatar" />
+                        <aside className={styles['account-sidebar']}>
+                            <div className={styles['user-profile']}>
+                                <img src={previewAvatar} alt="Avatar" className={styles['profile-avatar']} />
                                 <h3>{profile.fullName}</h3>
                                 <p>{profile.email}</p>
                             </div>
 
-                            <nav className="account-menu">
-                                <a href="#profile" className="menu-item active">
+                            <nav className={styles['account-menu']}>
+                                <a href="#profile" className={cx('menu-item', 'active')}>
                                     <i className="fas fa-user"></i>
                                     <span>Thông tin cá nhân</span>
                                 </a>
-                                <Link to="/booking-history" className="menu-item">
+                                <Link to="/booking-history" className={styles['menu-item']}>
                                     <i className="fas fa-clock"></i>
                                     <span>Lịch sử đặt tour</span>
                                 </Link>
-                                <a href="#favorites" className="menu-item">
+                                <a href="#favorites" className={styles['menu-item']}>
                                     <i className="fas fa-heart"></i>
                                     <span>Yêu thích</span>
                                 </a>
-                                <a href="#ai-history" className="menu-item">
+                                <a href="#ai-history" className={styles['menu-item']}>
                                     <i className="fas fa-robot"></i>
                                     <span>Lịch sử tư vấn</span>
                                 </a>
-                                <a href="#settings" className="menu-item">
+                                <a href="#settings" className={styles['menu-item']}>
                                     <i className="fas fa-cog"></i>
                                     <span>Cài đặt</span>
                                 </a>
-                                <a href="#" className="menu-item logout" onClick={handleLogout}>
+                                <a href="#" className={cx('menu-item', 'logout')} onClick={handleLogout}>
                                     <i className="fas fa-sign-out-alt"></i>
                                     <span>Đăng xuất</span>
                                 </a>
@@ -200,15 +201,15 @@ const Account = () => {
                         </aside>
 
                         {/* Main Content */}
-                        <div className="account-content">
-                            <section id="profile" className="content-section active">
+                        <div className={styles['account-content']}>
+                            <section id="profile" className={cx('content-section', 'active')}>
                                 <h2>Thông tin cá nhân</h2>
-                                <div className="profile-card">
+                                <div className={styles['profile-card']}>
                                     
                                     {/* Upload Avatar */}
-                                    <div className="avatar-upload">
+                                    <div className={styles['avatar-upload']}>
                                         <img src={previewAvatar} alt="Avatar" />
-                                        <button type="button" className="btn-upload" onClick={() => fileInputRef.current.click()}>
+                                        <button type="button" className={styles['btn-upload']} onClick={() => fileInputRef.current.click()}>
                                             <i className="fas fa-camera"></i>
                                         </button>
                                         <input 
@@ -221,9 +222,9 @@ const Account = () => {
                                     </div>
 
                                     {/* Edit Profile Form */}
-                                    <form className="profile-form" onSubmit={handleUpdateProfile}>
-                                        <div className="form-row">
-                                            <div className="form-field">
+                                    <form className={styles['profile-form']} onSubmit={handleUpdateProfile}>
+                                        <div className={styles['form-row']}>
+                                            <div className={styles['form-field']}>
                                                 <label>Họ và tên</label>
                                                 <input 
                                                     type="text" 
@@ -233,7 +234,7 @@ const Account = () => {
                                                     required 
                                                 />
                                             </div>
-                                            <div className="form-field">
+                                            <div className={styles['form-field']}>
                                                 <label>Email</label>
                                                 {/* Thường email đăng nhập không được đổi, nhưng nếu API của bạn cho phép thì để onChange */}
                                                 <input 
@@ -246,8 +247,8 @@ const Account = () => {
                                             </div>
                                         </div>
 
-                                        <div className="form-row">
-                                            <div className="form-field">
+                                        <div className={styles['form-row']}>
+                                            <div className={styles['form-field']}>
                                                 <label>Số điện thoại</label>
                                                 <input 
                                                     type="tel"  
@@ -257,7 +258,7 @@ const Account = () => {
                                                     required 
                                                 />
                                             </div>
-                                            <div className="form-field">
+                                            <div className={styles['form-field']}>
                                                 <label>Ngày sinh</label>
                                                 <input 
                                                     type="date" 
@@ -268,8 +269,8 @@ const Account = () => {
                                             </div>
                                         </div>
 
-                                        <div className="form-row">
-                                            <div className="form-field">
+                                        <div className={styles['form-row']}>
+                                            <div className={styles['form-field']}>
                                                 <label>Giới tính</label>
                                                 <select name="gender" value={formData.gender} onChange={handleInputChange}>
                                                     <option value="">Chưa cập nhật</option>
@@ -278,7 +279,7 @@ const Account = () => {
                                                     <option value="3">Khác</option>
                                                 </select>
                                             </div>
-                                            <div className="form-field">
+                                            <div className={styles['form-field']}>
                                                 <label>Địa chỉ</label>
                                                 <input 
                                                     type="text" 
@@ -289,7 +290,7 @@ const Account = () => {
                                             </div>
                                         </div>
 
-                                        <button type="submit" className="btn-save" disabled={isUpdating}>
+                                        <button type="submit" className={styles['btn-save']} disabled={isUpdating}>
                                             <i className={isUpdating ? "fas fa-spinner fa-spin" : "fas fa-save"}></i> 
                                             {isUpdating ? " Đang cập nhật..." : " Lưu thay đổi"}
                                         </button>

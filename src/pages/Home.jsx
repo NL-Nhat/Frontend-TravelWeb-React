@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import api from '../services/api'; // Import instance axios bạn đã tạo
+import styles from '../styles/home.module.css';
 
 const Home = () => {
+  const cx = (...classes) => classes.map((name) => styles[name] || name).join(' ');
   const [tours, setTours] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [tourCount, setTourCount] = useState(0);
@@ -20,7 +22,7 @@ const Home = () => {
                   status: 'Đang mở',
                   page: 0,
                   size: 9,
-                  sort: 'id,desc' // Sắp xếp giảm dần theo ID để lấy 10 tour mới nhất
+                  sort: 'id,desc' // Sắp xếp giảm dần theo ID để lấy tour mới nhất
               }
           }),
           api.get('/tours/count-all-tour'),
@@ -57,7 +59,7 @@ const Home = () => {
       });
     }, observerOptions);
 
-    const elements = document.querySelectorAll('.tour-card, .destination-card, .review-card');
+    const elements = document.querySelectorAll(`.${styles['tour-card']}, .${styles['destination-card']}, .${styles['review-card']}`);
     elements.forEach(el => {
       el.style.opacity = '0';
       el.style.transform = 'translateY(20px)';
@@ -85,36 +87,36 @@ const Home = () => {
   };
 
   return (
-    <div className="home-page">
+    <div className={styles['home-page']}>
       <Header />
       
       {/* Hero Section */}
-      <section className="hero">
-        <div className="hero-background">
-          <div className="hero-overlay"></div>
-          <video autoPlay muted loop className="hero-video">
+      <section className={styles.hero}>
+        <div className={styles['hero-background']}>
+          <div className={styles['hero-overlay']}></div>
+          <video autoPlay muted loop className={styles['hero-video']}>
             <source src="https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-a-beach-with-turquoise-water-1084-large.mp4" type="video/mp4" />
           </video>
         </div>
         <div className="container">
-          <div className="hero-content">
-            <h1 className="hero-title">
-              <span className="title-line">Khám Phá</span>
-              <span className="title-line highlight">Việt Nam</span>
-              <span className="title-line">Của Bạn</span>
+          <div className={styles['hero-content']}>
+            <h1 className={styles['hero-title']}>
+              <span className={styles['title-line']}>Khám Phá</span>
+              <span className={cx('title-line', 'highlight')}>Việt Nam</span>
+              <span className={styles['title-line']}>Của Bạn</span>
             </h1>
-            <p className="hero-subtitle">Trải nghiệm những chuyến đi đáng nhớ với hơn 100+ tour du lịch độc đáo</p>
+            <p className={styles['hero-subtitle']}>Trải nghiệm những chuyến đi đáng nhớ với hơn 100+ tour du lịch độc đáo</p>
             
-            <div className="hero-search">
-              <div className="search-box">
+            <div className={styles['hero-search']}>
+              <div className={styles['search-box']}>
                 <i className="fas fa-search"></i>
                 <input type="text" placeholder="Bạn muốn đi đâu?"/>
               </div>
-              <div className="search-filter">
+              <div className={styles['search-filter']}>
                 <i className="fas fa-calendar"></i>
                 <input type="date" />
               </div>
-              <div className="search-filter">
+              <div className={styles['search-filter']}>
                 <i className="fas fa-users"></i>
                 <select>
                   <option>Số người</option>
@@ -128,70 +130,70 @@ const Home = () => {
               </button>
             </div>
                 
-            <div className="hero-stats">
-              <div className="stat-item">
-                <span className="stat-number">{tourCount}+</span>
-                <span className="stat-label">Tour du lịch</span>
+            <div className={styles['hero-stats']}>
+              <div className={styles['stat-item']}>
+                <span className={styles['stat-number']}>{tourCount}+</span>
+                <span className={styles['stat-label']}>Tour du lịch</span>
               </div>
-              <div className="stat-item">
-                <span className="stat-number">{userCount}+</span>
-                <span className="stat-label">Khách hàng</span>
+              <div className={styles['stat-item']}>
+                <span className={styles['stat-number']}>{userCount}+</span>
+                <span className={styles['stat-label']}>Khách hàng</span>
               </div>
-              <div className="stat-item">
-                <span className="stat-number">4.9★</span>
-                <span className="stat-label">Đánh giá</span>
+              <div className={styles['stat-item']}>
+                <span className={styles['stat-number']}>4.9★</span>
+                <span className={styles['stat-label']}>Đánh giá</span>
               </div>
             </div>
           </div>
         </div>
-        <div className="scroll-indicator">
+        <div className={styles['scroll-indicator']}>
           <span>Cuộn xuống</span>
           <i className="fas fa-chevron-down"></i>
         </div>
       </section>
 
-      <section className="featured-tours">
+      <section className={styles['featured-tours']}>
         <div className="container">
-          <div className="section-header">
-            <span className="section-tag">Xu hướng</span>
-            <h2 className="section-title">Tour Nổi Bật</h2>
-            <p className="section-subtitle">Những điểm đến được yêu thích nhất</p>
+          <div className={styles['section-header']}>
+            <span className={styles['section-tag']}>Xu hướng</span>
+            <h2 className={styles['section-title']}>Tour Nổi Bật</h2>
+            <p className={styles['section-subtitle']}>Những điểm đến được yêu thích nhất</p>
           </div>
           
-          <div className="tours-grid">
+          <div className={styles['tours-grid']}>
             {loading ? (
               <p>Đang tải danh sách tour...</p>
             ) : (
               tours.map((tour) => (
-                <div key={tour.id} className="tour-card">
-                  <div className="tour-image">
+                <div key={tour.id} className={styles['tour-card']}>
+                  <div className={styles['tour-image']}>
                     <img src={tour.image} alt={tour.tourName}/>
-                    <div className="tour-badge">Bán chạy</div>
-                    <button className="tour-favorite">
+                    <div className={styles['tour-badge']}>Bán chạy</div>
+                    <button className={styles['tour-favorite']}>
                       <i className="far fa-heart"></i>
                     </button>
-                    <div className="tour-overlay">
-                      <Link to={`/tour-detail/${tour.id}`} className="btn-view">Xem chi tiết</Link>
+                    <div className={styles['tour-overlay']}>
+                      <Link to={`/tour-detail/${tour.id}`} className={styles['btn-view']}>Xem chi tiết</Link>
                     </div>
                   </div>
-                  <div className="tour-content">
-                    <div className="tour-header">
-                      <div className="tour-location">
+                  <div className={styles['tour-content']}>
+                    <div className={styles['tour-header']}>
+                      <div className={styles['tour-location']}>
                         <i className="fas fa-map-marker-alt"></i>
                         <span>{tour.city}</span>
                       </div>
-                      <div className="tour-rating">
+                      <div className={styles['tour-rating']}>
                         <i className="fas fa-star"></i>
                         <span>{tour.averageRating || 0} ({tour.numberOfReview || 0})</span>
                       </div>
                     </div>
-                    <h3 className="tour-title">{tour.tourName}</h3>
-                    <p className="tour-description">{tour.describe ? tour.describe.substring(0, 60) + "..." : "Khám phá hành trình thú vị"}</p>
+                    <h3 className={styles['tour-title']}>{tour.tourName}</h3>
+                    <p className={styles['tour-description']}>{tour.describe ? tour.describe.substring(0, 60) + "..." : "Khám phá hành trình thú vị"}</p>
                     
-                    <div className="tour-footer">
-                      <div className="tour-price">
-                        <span className="price-from">Từ</span>
-                        <span className="price-amount">{formatPrice(tour.adultPrice)}</span>
+                    <div className={styles['tour-footer']}>
+                      <div className={styles['tour-price']}>
+                        <span className={styles['price-from']}>Từ</span>
+                        <span className={styles['price-amount']}>{formatPrice(tour.adultPrice)}</span>
                       </div>
                       <Link to={`/tour-detail/${tour.id}`} className="btn-book">Đặt ngay</Link>
                     </div>
@@ -201,7 +203,7 @@ const Home = () => {
             )}
           </div>
           
-          <div className="section-footer">
+          <div className={styles['section-footer']}>
             <Link to="/tours" className="btn-secondary">
               Xem tất cả tour <i className="fas fa-arrow-right"></i>
             </Link>
@@ -209,49 +211,49 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="destinations">
+      <section className={styles.destinations}>
         <div className="container">
-            <div className="section-header">
-                <span className="section-tag">Điểm đến</span>
-                <h2 className="section-title">Khám Phá Việt Nam</h2>
-                <p className="section-subtitle">Từ Bắc chí Nam, từ núi đến biển</p>
+            <div className={styles['section-header']}>
+                <span className={styles['section-tag']}>Điểm đến</span>
+                <h2 className={styles['section-title']}>Khám Phá Việt Nam</h2>
+                <p className={styles['section-subtitle']}>Từ Bắc chí Nam, từ núi đến biển</p>
             </div>
             
-            <div className="destinations-grid">
-                <div className="destination-card large">
-                    <div className="destination-image">
+            <div className={styles['destinations-grid']}>
+                <div className={cx('destination-card', 'large')}>
+                    <div className={styles['destination-image']}>
                         <img src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800" alt="Miền Trung"/>
                     </div>
-                    <div className="destination-content">
+                    <div className={styles['destination-content']}>
                         <h3>Miền Trung</h3>
                         <p>15 tour du lịch</p>
-                        <a href="tours.html?region=trung" className="destination-link">
+                        <a href="tours.html?region=trung" className={styles['destination-link']}>
                             Khám phá <i className="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
                 
-                <div className="destination-card">
-                    <div className="destination-image">
+                <div className={styles['destination-card']}>
+                    <div className={styles['destination-image']}>
                         <img src="https://images.unsplash.com/photo-1540611025311-01df3cef54b5?w=800" alt="Miền Bắc"/>
                     </div>
-                    <div className="destination-content">
+                    <div className={styles['destination-content']}>
                         <h3>Miền Bắc</h3>
                         <p>20 tour du lịch</p>
-                        <a href="tours.html?region=bac" className="destination-link">
+                        <a href="tours.html?region=bac" className={styles['destination-link']}>
                             Khám phá <i className="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
                 
-                <div className="destination-card">
-                    <div className="destination-image">
+                <div className={styles['destination-card']}>
+                    <div className={styles['destination-image']}>
                         <img src="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800" alt="Miền Nam"/>
                     </div>
-                    <div className="destination-content">
+                    <div className={styles['destination-content']}>
                         <h3>Miền Nam</h3>
                         <p>18 tour du lịch</p>
-                        <a href="tours.html?region=nam" className="destination-link">
+                        <a href="tours.html?region=nam" className={styles['destination-link']}>
                             Khám phá <i className="fas fa-arrow-right"></i>
                         </a>
                     </div>
@@ -260,13 +262,13 @@ const Home = () => {
         </div>
     </section>
 
-    <section className="ai-advisor-teaser">
+    <section className={styles['ai-advisor-teaser']}>
         <div className="container">
-            <div className="advisor-content">
-                <div className="advisor-icon">
+            <div className={styles['advisor-content']}>
+                <div className={styles['advisor-icon']}>
                     <i className="fas fa-robot"></i>
                 </div>
-                <div className="advisor-text">
+                <div className={styles['advisor-text']}>
                     <h2>Trợ Lý AI Du Lịch</h2>
                     <p>Để AI giúp bạn lên kế hoạch chuyến đi hoàn hảo với sở thích và ngân sách của bạn</p>
                 </div>
@@ -277,34 +279,34 @@ const Home = () => {
         </div>
     </section>
 
-    <section className="reviews">
+    <section className={styles.reviews}>
         <div className="container">
-            <div className="section-header">
-                <span className="section-tag">Đánh giá</span>
-                <h2 className="section-title">Khách Hàng Nói Gì</h2>
-                <p className="section-subtitle">Những trải nghiệm thực tế từ khách hàng</p>
+            <div className={styles['section-header']}>
+                <span className={styles['section-tag']}>Đánh giá</span>
+                <h2 className={styles['section-title']}>Khách Hàng Nói Gì</h2>
+                <p className={styles['section-subtitle']}>Những trải nghiệm thực tế từ khách hàng</p>
             </div>
             
-            <div className="reviews-slider">
+            <div className={styles['reviews-slider']}>
                 {loading ? (
                   <p>Đang tải đánh giá...</p>
                 ) : reviews.length > 0 ? (
                   reviews.map((review, index) => (
-                    <div key={index} className="review-card">
-                        <div className="review-rating">
-                            {renderStars(review.numberStar)}
-                        </div>
-                        <p className="review-text">"{review.comment}"</p>
-                        <div className="review-author">
+                    <div key={index} className={styles['review-card']}>
+                        <div className={styles['review-author']}>
                             <img 
                               src={review.avatar} 
                               alt={review.avatar}
                             />
-                            <div className="author-info">
-                                <h4>{review.userName}</h4>
-                                <p>{review.tourName} - {new Date(review.createAt).toLocaleDateString('vi-VN')}</p>
+                            <div className={styles['author-info']}>
+                                <h4>{review.fullName}</h4>
+                                <div className={styles['review-rating']}>
+                                    {renderStars(review.numberStar)}
+                                </div>
+                                <p>{new Date(review.createAt).toLocaleDateString('vi-VN')}</p>
                             </div>
                         </div>
+                        <p className={styles['review-text']}>"{review.comment}"</p>
                     </div>
                   ))
                 ) : (
@@ -314,12 +316,12 @@ const Home = () => {
         </div>
       </section>
 
-    <section className="cta">
+    <section className={styles.cta}>
         <div className="container">
-            <div className="cta-content">
+            <div className={styles['cta-content']}>
                 <h2>Sẵn Sàng Cho Chuyến Đi?</h2>
                 <p>Đăng ký ngay để nhận ưu đãi đặc biệt và cập nhật tour mới nhất</p>
-                <div className="cta-form">
+                <div className={styles['cta-form']}>
                     <input type="email" placeholder="Nhập email của bạn"/>
                     <button className="btn-submit">Đăng ký</button>
                 </div>
@@ -327,16 +329,16 @@ const Home = () => {
         </div>
     </section>
 
-    <footer className="footer">
+    <footer className={styles.footer}>
         <div className="container">
-            <div className="footer-content">
-                <div className="footer-column">
-                    <div className="footer-logo">
+            <div className={styles['footer-content']}>
+                <div>
+                    <div className={styles['footer-logo']}>
                         <i className="fas fa-compass"></i>
                         <span>VietTravel</span>
                     </div>
                     <p>Khám phá vẻ đẹp Việt Nam cùng chúng tôi. Mang đến những trải nghiệm du lịch đáng nhớ nhất.</p>
-                    <div className="social-links">
+                    <div className={styles['social-links']}>
                         <a href="#"><i className="fab fa-facebook"></i></a>
                         <a href="#"><i className="fab fa-instagram"></i></a>
                         <a href="#"><i className="fab fa-youtube"></i></a>
@@ -344,7 +346,7 @@ const Home = () => {
                     </div>
                 </div>
                 
-                <div className="footer-column">
+                <div>
                     <h4>Dịch vụ</h4>
                     <ul>
                         <li><a href="tours.html">Tour du lịch</a></li>
@@ -354,7 +356,7 @@ const Home = () => {
                     </ul>
                 </div>
                 
-                <div className="footer-column">
+                <div>
                     <h4>Hỗ trợ</h4>
                     <ul>
                         <li><a href="#">Trung tâm trợ giúp</a></li>
@@ -364,9 +366,9 @@ const Home = () => {
                     </ul>
                 </div>
                 
-                <div className="footer-column">
+                <div>
                     <h4>Liên hệ</h4>
-                    <ul className="contact-info">
+                    <ul className={styles['contact-info']}>
                         <li>
                             <i className="fas fa-phone"></i>
                             <span>1900 1234</span>
@@ -383,9 +385,9 @@ const Home = () => {
                 </div>
             </div>
             
-            <div className="footer-bottom">
+            <div className={styles['footer-bottom']}>
                 <p>&copy; 2026 VietTravel. All rights reserved.</p>
-                <div className="payment-methods">
+                <div className={styles['payment-methods']}>
                     <i className="fab fa-cc-visa"></i>
                     <i className="fab fa-cc-mastercard"></i>
                     <i className="fab fa-cc-paypal"></i>

@@ -306,14 +306,14 @@
     animation: fadeIn 0.3s ease-out;
 }
 
-.page-header {
+.page-header-admin {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--spacing-xl);
 }
 
-.page-header h1 {
+.page-header-admin h1 {
     font-size: 2rem;
     color: var(--text-dark);
 }
@@ -763,7 +763,7 @@
         padding: var(--spacing-md);
     }
     
-    .page-header {
+    .page-header-admin {
         flex-direction: column;
         align-items: flex-start;
         gap: var(--spacing-md);

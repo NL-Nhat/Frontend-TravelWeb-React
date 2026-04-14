@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axiosClient from '../services/api';
 import Header from '../components/Header';
-import '../styles/tour-detail.css'; 
+import styles from '../styles/detailtour.module.css'; 
 
 const TourDetail = () => {
+    const cx = (...classes) => classes.map((name) => styles[name] || name).join(' ');
     const { id } = useParams(); // Lấy ID từ URL (VD: /tour-detail/1)
     const navigate = useNavigate();
 
@@ -36,8 +37,9 @@ const TourDetail = () => {
             try {
                 const response = await axiosClient.get(`/tours/${id}`);
                 setTour(response.data);
-                // Đặt ảnh chính mặc định là ảnh cover của tour
-                setMainImage(response.data.image || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200");
+                
+                // Đặt ảnh chính mặc định là ảnh cover của tour (nằm trong tourResponseDTO)
+                setMainImage(response.data.tourResponseDTO?.image || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200");
                 
                 // Chọn mặc định lịch trình khởi hành đầu tiên nếu có
                 if (response.data.departureSchedules && response.data.departureSchedules.length > 0) {
@@ -113,9 +115,9 @@ const TourDetail = () => {
     };
 
     const calculateTotal = () => {
-        if (!tour) return 0;
-        const adultTotal = adultCount * (tour.adultPrice || 0);
-        const childTotal = childCount * (tour.childPrice || 0);
+        if (!tour || !tour.tourResponseDTO) return 0;
+        const adultTotal = adultCount * (tour.tourResponseDTO.adultPrice || 0);
+        const childTotal = childCount * (tour.tourResponseDTO.childPrice || 0);
         return adultTotal + childTotal;
     };
 
@@ -128,38 +130,41 @@ const TourDetail = () => {
 
     if (loading) return <div style={{textAlign: 'center', padding: '100px'}}><h2>Đang tải thông tin tour...</h2></div>;
     if (error) return <div style={{textAlign: 'center', padding: '100px'}}><h2>{error}</h2></div>;
-    if (!tour) return null;
+    if (!tour || !tour.tourResponseDTO) return null;
+
+    // Trích xuất tourResponseDTO ra để code gọn hơn
+    const tourInfo = tour.tourResponseDTO;
 
     return (
         <>
             <Header />
-            <main className="tour-detail">
+            <main className={styles['tour-detail']}>
                 <div className="container">
                     {/* Breadcrumb */}
-                    <div className="breadcrumb">
+                    <div className={styles.breadcrumb}>
                         <Link to="/">Trang chủ</Link>
                         <i className="fas fa-chevron-right"></i>
                         <Link to="/tours">Tour du lịch</Link>
                         <i className="fas fa-chevron-right"></i>
-                        <span>{tour.tourName}</span>
+                        <span>{tourInfo.tourName}</span>
                     </div>
 
-                    <div className="detail-layout">
+                    <div className={styles['detail-layout']}>
                         {/* Main Content */}
-                        <div className="detail-main">
+                        <div>
                             
                             {/* Gallery */}
-                            <div className="tour-gallery">
-                                <div className="main-image">
-                                    <img src={mainImage} alt={tour.tourName} />
+                            <div className={styles['tour-gallery']}>
+                                <div className={styles['main-image']}>
+                                    <img src={mainImage} alt={tourInfo.tourName} />
                                 </div>
-                                <div className="thumbnail-grid">
+                                <div className={styles['thumbnail-grid']}>
                                     {/* Ảnh đại diện mặc định */}
                                     <img 
-                                        src={tour.image || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=300"} 
+                                        src={tourInfo.image || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=300"} 
                                         alt="Thumb" 
-                                        onClick={() => setMainImage(tour.image)}
-                                        style={{ border: mainImage === tour.image ? '2px solid var(--primary)' : 'none' }}
+                                        onClick={() => setMainImage(tourInfo.image)}
+                                        style={{ border: mainImage === tourInfo.image ? '2px solid var(--primary)' : 'none' }}
                                     />
                                     {/* Danh sách ảnh từ API (ImageTourResponseDTO) */}
                                     {tour.imageTours?.map((imgObj) => (
@@ -175,49 +180,49 @@ const TourDetail = () => {
                             </div>
 
                             {/* Tour Header Info */}
-                            <div className="tour-header-info">
-                                <div className="tour-meta">
-                                    <span className="tour-code">Mã tour: T{tour.id?.toString().padStart(4, '0')}</span>
-                                    <div className="tour-rating-detail">
-                                        <div className="stars">
+                            <div className={styles['tour-header-info']}>
+                                <div className={styles['tour-meta']}>
+                                    <span className={styles['tour-code']}>Mã tour: T{tourInfo.id?.toString().padStart(4, '0')}</span>
+                                    <div className={styles['tour-rating-detail']}>
+                                        <div className={styles.stars}>
                                             {[...Array(5)].map((_, i) => (
-                                                <i key={i} className={i < Math.round(tour.averageRating || 0) ? "fas fa-star" : "far fa-star"}></i>
+                                                <i key={i} className={i < Math.round(tourInfo.averageRating || 0) ? "fas fa-star" : "far fa-star"}></i>
                                             ))}
                                         </div>
-                                        <span>{tour.averageRating || 0} ({tour.numberOfReview || 0} đánh giá)</span>
+                                        <span>{tourInfo.averageRating || 0} ({tourInfo.numberOfReview || 0} đánh giá)</span>
                                     </div>
                                 </div>
-                                <h1 className="tour-title-main">{tour.tourName}</h1>
-                                <div className="tour-quick-info">
-                                    <span><i className="fas fa-map-marker-alt"></i> {tour.city}</span>
+                                <h1 className={styles['tour-title-main']}>{tourInfo.tourName}</h1>
+                                <div className={styles['tour-quick-info']}>
+                                    <span><i className="fas fa-map-marker-alt"></i> {tourInfo.city}</span>
                                     <span><i className="fas fa-clock"></i> Khám phá ngay</span>
                                     <span><i className="fas fa-star"></i> Đánh giá cao</span>
                                 </div>
                             </div>
 
                             {/* Tabs Navigation */}
-                            <div className="detail-tabs">
-                                <button className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>Tổng quan</button>
-                                <button className={`tab-btn ${activeTab === 'itinerary' ? 'active' : ''}`} onClick={() => setActiveTab('itinerary')}>Lịch trình</button>
-                                <button className={`tab-btn ${activeTab === 'schedule' ? 'active' : ''}`} onClick={() => setActiveTab('schedule')}>Lịch khởi hành</button>
-                                <button className={`tab-btn ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => setActiveTab('reviews')}>Đánh giá ({tour.numberOfReview || 0})</button>
+                            <div className={styles['detail-tabs']}>
+                                <button className={cx('tab-btn', activeTab === 'overview' ? 'active' : '')} onClick={() => setActiveTab('overview')}>Tổng quan</button>
+                                <button className={cx('tab-btn', activeTab === 'itinerary' ? 'active' : '')} onClick={() => setActiveTab('itinerary')}>Lịch trình</button>
+                                <button className={cx('tab-btn', activeTab === 'schedule' ? 'active' : '')} onClick={() => setActiveTab('schedule')}>Lịch khởi hành</button>
+                                <button className={cx('tab-btn', activeTab === 'reviews' ? 'active' : '')} onClick={() => setActiveTab('reviews')}>Đánh giá ({tourInfo.numberOfReview || 0})</button>
                             </div>
 
                             {/* Tab Content: Tổng quan */}
-                            <div className={`tab-content ${activeTab === 'overview' ? 'active' : ''}`} id="overview">
+                            <div className={cx('tab-content', activeTab === 'overview' ? 'active' : '')} id="overview">
                                 <h2>Mô tả tour</h2>
-                                <p>{tour.describe}</p>
+                                <p>{tourInfo.describe}</p>
                                 
                                 <h3>Điểm nhấn của tour</h3>
-                                <ul className="highlight-list">
-                                    <li><i className="fas fa-check"></i> Trải nghiệm tuyệt vời tại {tour.city}</li>
+                                <ul className={styles['highlight-list']}>
+                                    <li><i className="fas fa-check"></i> Trải nghiệm tuyệt vời tại {tourInfo.city}</li>
                                     <li><i className="fas fa-check"></i> Lịch trình được thiết kế tối ưu</li>
                                     <li><i className="fas fa-check"></i> Hướng dẫn viên chuyên nghiệp</li>
                                 </ul>
 
                                 <h3>Bao gồm</h3>
-                                <div className="inclusions">
-                                    <div className="inclusion-item">
+                                <div className={styles.inclusions}>
+                                    <div className={styles['inclusion-item']}>
                                         <i className="fas fa-check-circle"></i>
                                         <div>
                                             <h4>Phương tiện</h4>
@@ -228,18 +233,18 @@ const TourDetail = () => {
                             </div>
 
                             {/* Tab Content: Lịch trình */}
-                            <div className={`tab-content ${activeTab === 'itinerary' ? 'active' : ''}`} id="itinerary">
+                            <div className={cx('tab-content', activeTab === 'itinerary' ? 'active' : '')} id="itinerary">
                                 <h2>Lịch trình chi tiết</h2>
                                 {loadingItinerary ? (
                                     <p>Đang tải lịch trình...</p>
                                 ) : itinerary.length > 0 ? (
-                                    <div className="itinerary-timeline">
+                                    <div className={styles['itinerary-timeline']}>
                                         {itinerary.map((schedule) => (
-                                            <div key={schedule.id} className="timeline-item">
-                                                <div className="timeline-marker">
+                                            <div key={schedule.id} className={styles['timeline-item']}>
+                                                <div className={styles['timeline-marker']}>
                                                     <i className="fas fa-circle"></i>
                                                 </div>
-                                                <div className="timeline-content">
+                                                <div className={styles['timeline-content']}>
                                                     <h3>{formatTime(schedule.time)} - {schedule.work}</h3>
                                                     <p style={{ color: 'var(--primary)', fontWeight: 'bold', marginBottom: '8px' }}>
                                                         <i className="fas fa-calendar-day"></i> Ngày: {formatDate(schedule.date)}
@@ -255,29 +260,29 @@ const TourDetail = () => {
                             </div>
 
                             {/* Tab Content: Lịch khởi hành */}
-                            <div className={`tab-content ${activeTab === 'schedule' ? 'active' : ''}`} id="schedule">
+                            <div className={cx('tab-content', activeTab === 'schedule' ? 'active' : '')} id="schedule">
                                 <h2>Lịch khởi hành</h2>
                                 {tour.departureSchedules?.length > 0 ? (
-                                    <div className="schedule-list">
+                                    <div className={styles['schedule-list']}>
                                         {tour.departureSchedules.map(schedule => {
                                             const availableSlots = (schedule.maxGuest || 0) - (schedule.numberGuestBooked || 0);
                                             const sDate = new Date(schedule.startDate);
                                             
                                             return (
-                                                <div key={schedule.id} className="schedule-item">
-                                                    <div className="schedule-date">
-                                                        <span className="date-day">{sDate.getDate()}</span>
-                                                        <span className="date-month">Tháng {sDate.getMonth() + 1}</span>
+                                                <div key={schedule.id} className={styles['schedule-item']}>
+                                                    <div className={styles['schedule-date']}>
+                                                        <span className={styles['date-day']}>{sDate.getDate()}</span>
+                                                        <span className={styles['date-month']}>Tháng {sDate.getMonth() + 1}</span>
                                                     </div>
-                                                    <div className="schedule-info">
+                                                    <div className={styles['schedule-info']}>
                                                         <h4>Từ {formatDate(schedule.startDate)} đến {formatDate(schedule.endDate)}</h4>
                                                         <p><i className="fas fa-clock"></i> Khởi hành lúc: {formatTime(schedule.startTime)}</p>
                                                         <p><i className="fas fa-users"></i> Còn {availableSlots}/{schedule.maxGuest} chỗ</p>
                                                     </div>
-                                                    <div className="schedule-price">
-                                                        <span className="price">{formatPrice(tour.adultPrice)}</span>
+                                                    <div className={styles['schedule-price']}>
+                                                        <span className={styles.price}>{formatPrice(tourInfo.adultPrice)}</span>
                                                         <button 
-                                                            className="btn-book-schedule"
+                                                            className={styles['btn-book-schedule']}
                                                             onClick={() => {
                                                                 setSelectedSchedule(schedule.id);
                                                                 setActiveTab('itinerary'); 
@@ -297,17 +302,17 @@ const TourDetail = () => {
                             </div>
 
                             {/* Tab Content: Đánh giá */}
-                            <div className={`tab-content ${activeTab === 'reviews' ? 'active' : ''}`} id="reviews">
-                                <div className="reviews-summary">
-                                    <div className="rating-overview">
-                                        <div className="rating-score">
-                                            <span className="score-number">{tour.averageRating || 0}</span>
-                                            <div className="score-stars">
+                            <div className={cx('tab-content', activeTab === 'reviews' ? 'active' : '')} id="reviews">
+                                <div className={styles['reviews-summary']}>
+                                    <div className={styles['rating-overview']}>
+                                        <div className={styles['rating-score']}>
+                                            <span className={styles['score-number']}>{tourInfo.averageRating || 0}</span>
+                                            <div className={styles['score-stars']}>
                                                 {[...Array(5)].map((_, i) => (
-                                                    <i key={i} className={i < Math.round(tour.averageRating || 0) ? "fas fa-star" : "far fa-star"}></i>
+                                                    <i key={i} className={i < Math.round(tourInfo.averageRating || 0) ? "fas fa-star" : "far fa-star"}></i>
                                                 ))}
                                             </div>
-                                            <span className="score-count">{tour.numberOfReview || 0} đánh giá</span>
+                                            <span className={styles['score-count']}>{tourInfo.numberOfReview || 0} đánh giá</span>
                                         </div>
                                     </div>
                                 </div>
@@ -316,26 +321,26 @@ const TourDetail = () => {
                                 {loadingReviews ? (
                                     <p>Đang tải đánh giá...</p>
                                 ) : reviews.length > 0 ? (
-                                    <div className="reviews-list">
+                                    <div className={styles['reviews-list']}>
                                         {reviews.map((review, index) => (
-                                            <div key={index} className="review-item">
-                                                <div className="review-header">
+                                            <div key={index} className={styles['review-item']}>
+                                                <div className={styles['review-header']}>
                                                     <img 
                                                         src={review.avatar || "https://i.pravatar.cc/150"} 
                                                         alt="User" 
-                                                        className="user-avatar" 
+                                                        className={styles['user-avatar']} 
                                                     />
-                                                    <div className="review-user-info">
-                                                        <h4>{review.userName}</h4>
-                                                        <div className="review-rating">
+                                                    <div className={styles['review-user-info']}>
+                                                        <h4>{review.fullName}</h4>
+                                                        <div className={styles['review-rating']}>
                                                             {[...Array(5)].map((_, i) => (
                                                                 <i key={i} className={i < review.numberStar ? "fas fa-star" : "far fa-star"}></i>
                                                             ))}
                                                         </div>
-                                                        <span className="review-date">{formatDate(review.createAt)}</span>
+                                                        <span className={styles['review-date']}>{formatDate(review.createAt)}</span>
                                                     </div>
                                                 </div>
-                                                <p className="review-comment">{review.comment}</p>
+                                                <p className={styles['review-comment']}>{review.comment}</p>
                                             </div>
                                         ))}
                                     </div>
@@ -347,20 +352,20 @@ const TourDetail = () => {
                         </div>
 
                         {/* Booking Sidebar */}
-                        <aside className="booking-sidebar">
-                            <div className="booking-card">
-                                <div className="price-section">
-                                    <span className="price-label">Giá tour</span>
-                                    <div className="price-display">
-                                        <span className="price-amount">{formatPrice(tour.adultPrice)}</span>
-                                        <span className="price-unit">/người</span>
+                        <aside className={styles['booking-sidebar']}>
+                            <div className={styles['booking-card']}>
+                                <div className={styles['price-section']}>
+                                    <span className={styles['price-label']}>Giá tour</span>
+                                    <div className={styles['price-display']}>
+                                        <span className={styles['price-amount']}>{formatPrice(tourInfo.adultPrice)}</span>
+                                        <span className={styles['price-unit']}>/người</span>
                                     </div>
-                                    <span className="price-note">Giá trẻ em: {formatPrice(tour.childPrice)}</span>
+                                    <span className={styles['price-note']}>Giá trẻ em: {formatPrice(tourInfo.childPrice)}</span>
                                 </div>
                                 
-                                <form className="booking-form">
+                                <form className={styles['booking-form']}>
                                     {/* Chọn lịch khởi hành */}
-                                    <div className="form-group">
+                                    <div className={styles['form-group']}>
                                         <label><i className="fas fa-calendar"></i> Ngày khởi hành</label>
                                         <select 
                                             value={selectedSchedule} 
@@ -376,33 +381,33 @@ const TourDetail = () => {
                                     </div>
                                     
                                     {/* Số lượng khách */}
-                                    <div className="form-group">
+                                    <div className={styles['form-group']}>
                                         <label><i className="fas fa-user"></i> Người lớn (Từ 12 tuổi)</label>
-                                        <div className="counter">
-                                            <button type="button" className="counter-btn" onClick={() => setAdultCount(Math.max(1, adultCount - 1))}>-</button>
+                                        <div className={styles.counter}>
+                                            <button type="button" className={styles['counter-btn']} onClick={() => setAdultCount(Math.max(1, adultCount - 1))}>-</button>
                                             <input type="number" value={adultCount} readOnly />
-                                            <button type="button" className="counter-btn" onClick={() => setAdultCount(adultCount + 1)}>+</button>
+                                            <button type="button" className={styles['counter-btn']} onClick={() => setAdultCount(adultCount + 1)}>+</button>
                                         </div>
                                     </div>
                                     
-                                    <div className="form-group">
+                                    <div className={styles['form-group']}>
                                         <label><i className="fas fa-child"></i> Trẻ em (Dưới 12 tuổi)</label>
-                                        <div className="counter">
-                                            <button type="button" className="counter-btn" onClick={() => setChildCount(Math.max(0, childCount - 1))}>-</button>
+                                        <div className={styles.counter}>
+                                            <button type="button" className={styles['counter-btn']} onClick={() => setChildCount(Math.max(0, childCount - 1))}>-</button>
                                             <input type="number" value={childCount} readOnly />
-                                            <button type="button" className="counter-btn" onClick={() => setChildCount(childCount + 1)}>+</button>
+                                            <button type="button" className={styles['counter-btn']} onClick={() => setChildCount(childCount + 1)}>+</button>
                                         </div>
                                     </div>
                                     
                                     {/* Tổng tiền */}
-                                    <div className="total-price">
+                                    <div className={styles['total-price']}>
                                         <span>Tổng cộng:</span>
-                                        <span className="total-amount">{formatPrice(calculateTotal())}</span>
+                                        <span className={styles['total-amount']}>{formatPrice(calculateTotal())}</span>
                                     </div>
                                     
                                     <button 
                                         type="button" 
-                                        className="btn-book-tour" 
+                                        className={styles['btn-book-tour']} 
                                         onClick={handleBooking}
                                         disabled={!selectedSchedule}
                                         style={{ opacity: !selectedSchedule ? 0.6 : 1, cursor: !selectedSchedule ? 'not-allowed' : 'pointer' }}
@@ -410,14 +415,14 @@ const TourDetail = () => {
                                         <i className="fas fa-ticket-alt"></i> Đặt tour ngay
                                     </button>
                                     
-                                    <button type="button" className="btn-add-favorite">
+                                    <button type="button" className={styles['btn-add-favorite']}>
                                         <i className="far fa-heart"></i> Lưu vào yêu thích
                                     </button>
                                 </form>
                                 
-                                <div className="contact-support">
+                                <div className={styles['contact-support']}>
                                     <p>Cần hỗ trợ?</p>
-                                    <a href="tel:19001234" className="support-phone">
+                                    <a href="tel:19001234" className={styles['support-phone']}>
                                         <i className="fas fa-phone"></i> 1900 1234
                                     </a>
                                 </div>

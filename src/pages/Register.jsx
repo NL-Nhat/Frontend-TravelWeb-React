@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosClient from '../services/api';
-import '../styles/auth.css';
+import styles from '../styles/auth.module.css';
 
 const Register = () => {
+    const cx = (...classes) => classes.map((name) => styles[name] || name).join(' ');
     const navigate = useNavigate();
 
     // 1. Quản lý State cho Form
@@ -133,89 +134,89 @@ const Register = () => {
     };
 
     return (
-        <div className="auth-page">
-            <div className="auth-container">
+        <div className={styles['auth-page']}>
+            <div className={styles['auth-container']}>
                 {/* Left Side - Visual */}
-                <div className="auth-visual">
-                    <div className="visual-overlay"></div>
-                    <div className="visual-content">
-                        <Link to="/" className="auth-logo">
+                <div className={styles['auth-visual']}>
+                    <div className={styles['visual-overlay']}></div>
+                    <div className={styles['visual-content']}>
+                        <Link to="/" className={styles['auth-logo']}>
                             <i className="fas fa-compass"></i>
                             <span>VietTravel</span>
                         </Link>
-                        <div className="visual-text">
+                        <div className={styles['visual-text']}>
                             <h2>Bắt đầu hành trình</h2>
                             <p>Tạo tài khoản để khám phá những điều tuyệt vời</p>
                         </div>
-                        <div className="visual-benefits">
-                            <div className="benefit-item">
-                                <div className="benefit-icon">
+                        <div className={styles['visual-benefits']}>
+                            <div className={styles['benefit-item']}>
+                                <div className={styles['benefit-icon']}>
                                     <i className="fas fa-gift"></i>
                                 </div>
-                                <div className="benefit-text">
+                                <div className={styles['benefit-text']}>
                                     <h4>Ưu đãi độc quyền</h4>
                                     <p>Giảm giá đặc biệt cho thành viên mới</p>
                                 </div>
                             </div>
-                            <div className="benefit-item">
-                                <div className="benefit-icon">
+                            <div className={styles['benefit-item']}>
+                                <div className={styles['benefit-icon']}>
                                     <i className="fas fa-bell"></i>
                                 </div>
-                                <div className="benefit-text">
+                                <div className={styles['benefit-text']}>
                                     <h4>Thông báo sớm</h4>
                                     <p>Cập nhật tour mới và khuyến mãi</p>
                                 </div>
                             </div>
-                            <div className="benefit-item">
-                                <div className="benefit-icon">
+                            <div className={styles['benefit-item']}>
+                                <div className={styles['benefit-icon']}>
                                     <i className="fas fa-star"></i>
                                 </div>
-                                <div className="benefit-text">
+                                <div className={styles['benefit-text']}>
                                     <h4>Tích điểm thưởng</h4>
                                     <p>Nhận điểm cho mỗi chuyến đi</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="visual-slider">
-                        <div className="slider-dots">
-                            <span className="dot active"></span>
-                            <span className="dot"></span>
-                            <span className="dot"></span>
+                    <div className={styles['visual-slider']}>
+                        <div className={styles['slider-dots']}>
+                            <span className={cx('dot', 'active')}></span>
+                            <span className={styles.dot}></span>
+                            <span className={styles.dot}></span>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Side - Register Form */}
-                <div className="auth-form-container">
-                    <div className="auth-form-wrapper">
-                        <div className="auth-header">
+                <div className={styles['auth-form-container']}>
+                    <div className={styles['auth-form-wrapper']}>
+                        <div className={styles['auth-header']}>
                             <h1>Tạo tài khoản mới</h1>
                             <p>Điền thông tin để bắt đầu</p>
                         </div>
 
                         {/* Social Register */}
-                        <div className="social-login">
-                            <button type="button" className="social-btn google">
+                        <div className={styles['social-login']}>
+                            <button type="button" className={cx('social-btn', 'google')}>
                                 <i className="fab fa-google"></i>
                                 <span>Đăng ký với Google</span>
                             </button>
-                            <button type="button" className="social-btn facebook">
+                            <button type="button" className={cx('social-btn', 'facebook')}>
                                 <i className="fab fa-facebook-f"></i>
                                 <span>Đăng ký với Facebook</span>
                             </button>
                         </div>
 
-                        <div className="divider">
+                        <div className={styles.divider}>
                             <span>hoặc</span>
                         </div>
 
                         {/* Register Form */}
-                        <form className="auth-form" onSubmit={handleRegister}>
+                        <form className={styles['auth-form']} onSubmit={handleRegister}>
                             
                             {/* Dòng 1: Họ và tên & Tên đăng nhập */}
-                            <div className="form-row two-columns">
-                                <div className="form-group">
+                            <div className={cx('form-row', 'two-columns')}>
+                                <div className={styles['form-group']}>
                                     <label htmlFor="fullName">
                                         <i className="fas fa-user"></i>
                                         Họ và tên *
@@ -226,12 +227,12 @@ const Register = () => {
                                         placeholder="Nguyễn Văn A"
                                         value={formData.fullName}
                                         onChange={handleChange}
-                                        className={errors.fullName ? 'error' : ''}
+                                        className={errors.fullName ? styles.error : ''}
                                     />
-                                    {errors.fullName && <span className="error-message show">{errors.fullName}</span>}
+                                    {errors.fullName && <span className={cx('error-message', 'show')}>{errors.fullName}</span>}
                                 </div>
                                 
-                                <div className="form-group">
+                                <div className={styles['form-group']}>
                                     <label htmlFor="userName">
                                         <i className="fas fa-user-circle"></i>
                                         Tên đăng nhập *
@@ -242,15 +243,15 @@ const Register = () => {
                                         placeholder="username123"
                                         value={formData.userName}
                                         onChange={handleChange}
-                                        className={errors.userName ? 'error' : ''}
+                                        className={errors.userName ? styles.error : ''}
                                     />
-                                    {errors.userName && <span className="error-message show">{errors.userName}</span>}
+                                    {errors.userName && <span className={cx('error-message', 'show')}>{errors.userName}</span>}
                                 </div>
                             </div>
 
                             {/* Dòng 2: Email */}
-                            <div className="form-row">
-                                <div className="form-group">
+                            <div className={styles['form-row']}>
+                                <div className={styles['form-group']}>
                                     <label htmlFor="email">
                                         <i className="fas fa-envelope"></i>
                                         Email *
@@ -261,15 +262,15 @@ const Register = () => {
                                         placeholder="example@email.com"
                                         value={formData.email}
                                         onChange={handleChange}
-                                        className={errors.email ? 'error' : ''}
+                                        className={errors.email ? styles.error : ''}
                                     />
-                                    {errors.email && <span className="error-message show">{errors.email}</span>}
+                                    {errors.email && <span className={cx('error-message', 'show')}>{errors.email}</span>}
                                 </div>
                             </div>
 
                             {/* Dòng 3: Số điện thoại & Giới tính */}
-                            <div className="form-row two-columns">
-                                <div className="form-group">
+                            <div className={cx('form-row', 'two-columns')}>
+                                <div className={styles['form-group']}>
                                     <label htmlFor="phoneNumber">
                                         <i className="fas fa-phone"></i>
                                         Số điện thoại *
@@ -280,12 +281,12 @@ const Register = () => {
                                         placeholder="0123456789"
                                         value={formData.phoneNumber}
                                         onChange={handleChange}
-                                        className={errors.phoneNumber ? 'error' : ''}
+                                        className={errors.phoneNumber ? styles.error : ''}
                                     />
-                                    {errors.phoneNumber && <span className="error-message show">{errors.phoneNumber}</span>}
+                                    {errors.phoneNumber && <span className={cx('error-message', 'show')}>{errors.phoneNumber}</span>}
                                 </div>
 
-                                <div className="form-group">
+                                <div className={styles['form-group']}>
                                     <label htmlFor="gender">
                                         <i className="fas fa-venus-mars"></i>
                                         Giới tính *
@@ -294,76 +295,76 @@ const Register = () => {
                                         id="gender" 
                                         value={formData.gender} 
                                         onChange={handleChange}
-                                        className={errors.gender ? 'error' : ''}
+                                        className={errors.gender ? styles.error : ''}
                                     >
                                         <option value="">Chọn giới tính</option>
                                         <option value="1">Nam</option>
                                         <option value="2">Nữ</option>
                                         <option value="3">Khác</option>
                                     </select>
-                                    {errors.gender && <span className="error-message show">{errors.gender}</span>}
+                                    {errors.gender && <span className={cx('error-message', 'show')}>{errors.gender}</span>}
                                 </div>
                             </div>
 
                             {/* Dòng 4: Mật khẩu */}
-                            <div className="form-row">
-                                <div className="form-group">
+                            <div className={styles['form-row']}>
+                                <div className={styles['form-group']}>
                                     <label htmlFor="passWord">
                                         <i className="fas fa-lock"></i>
                                         Mật khẩu *
                                     </label>
-                                    <div className="password-input">
+                                    <div className={styles['password-input']}>
                                         <input 
                                             type={showPassword ? "text" : "password"} 
                                             id="passWord" 
                                             placeholder="Tối thiểu 8 ký tự"
                                             value={formData.passWord}
                                             onChange={handleChange}
-                                            className={errors.passWord ? 'error' : ''}
+                                            className={errors.passWord ? styles.error : ''}
                                         />
                                         <button 
                                             type="button" 
-                                            className="toggle-password" 
+                                            className={styles['toggle-password']} 
                                             onClick={() => setShowPassword(!showPassword)}
                                         >
                                             <i className={showPassword ? "far fa-eye-slash" : "far fa-eye"}></i>
                                         </button>
                                     </div>
-                                    {errors.passWord && <span className="error-message show">{errors.passWord}</span>}
+                                    {errors.passWord && <span className={cx('error-message', 'show')}>{errors.passWord}</span>}
                                 </div>
                             </div>
 
                             {/* Dòng 5: Xác nhận mật khẩu */}
-                            <div className="form-row">
-                                <div className="form-group">
+                            <div className={styles['form-row']}>
+                                <div className={styles['form-group']}>
                                     <label htmlFor="confirmPassword">
                                         <i className="fas fa-lock"></i>
                                         Xác nhận mật khẩu *
                                     </label>
-                                    <div className="password-input">
+                                    <div className={styles['password-input']}>
                                         <input 
                                             type={showConfirmPassword ? "text" : "password"} 
                                             id="confirmPassword" 
                                             placeholder="Nhập lại mật khẩu"
                                             value={formData.confirmPassword}
                                             onChange={handleChange}
-                                            className={errors.confirmPassword ? 'error' : ''}
+                                            className={errors.confirmPassword ? styles.error : ''}
                                         />
                                         <button 
                                             type="button" 
-                                            className="toggle-password" 
+                                            className={styles['toggle-password']} 
                                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                         >
                                             <i className={showConfirmPassword ? "far fa-eye-slash" : "far fa-eye"}></i>
                                         </button>
                                     </div>
-                                    {errors.confirmPassword && <span className="error-message show">{errors.confirmPassword}</span>}
+                                    {errors.confirmPassword && <span className={cx('error-message', 'show')}>{errors.confirmPassword}</span>}
                                 </div>
                             </div>
 
                             {/* Điều khoản */}
-                            <div className="form-group-checkbox">
-                                <label className="checkbox-label">
+                            <div className={styles['form-group-checkbox']}>
+                                <label className={styles['checkbox-label']}>
                                     <input 
                                         type="checkbox" 
                                         id="agreeTerms" 
@@ -372,24 +373,24 @@ const Register = () => {
                                     />
                                     <span>Tôi đồng ý với <Link to="/terms" target="_blank">Điều khoản dịch vụ</Link> và <Link to="/privacy" target="_blank">Chính sách bảo mật</Link></span>
                                 </label>
-                                {errors.agreeTerms && <div className="error-message show" style={{marginTop: '4px', paddingLeft: '28px'}}>{errors.agreeTerms}</div>}
+                                {errors.agreeTerms && <div className={cx('error-message', 'show')} style={{marginTop: '4px', paddingLeft: '28px'}}>{errors.agreeTerms}</div>}
                             </div>
 
                             {/* Hiển thị lỗi API trả về */}
                             {apiError && <div style={{ color: 'var(--danger)', fontSize: '0.9rem', textAlign: 'center', marginTop: '10px' }}>{apiError}</div>}
 
                             {/* Nút Submit */}
-                            <button type="submit" className="btn-submit" disabled={loading}>
+                            <button type="submit" className={styles['btn-submit']} disabled={loading}>
                                 <span>{loading ? "Đang xử lý..." : "Đăng ký"}</span>
                                 {!loading && <i className="fas fa-arrow-right"></i>}
                             </button>
                         </form>
 
-                        <div className="auth-footer">
+                        <div className={styles['auth-footer']}>
                             <p>Đã có tài khoản? <Link to="/login">Đăng nhập ngay</Link></p>
                         </div>
 
-                        <div className="auth-help">
+                        <div className={styles['auth-help']}>
                             <p>Cần hỗ trợ? <Link to="/contact">Liên hệ chúng tôi</Link></p>
                         </div>
                     </div>
@@ -397,8 +398,8 @@ const Register = () => {
             </div>
 
             {/* Loading Overlay */}
-            <div className={`loading-overlay ${loading ? 'show' : ''}`}>
-                <div className="loading-spinner">
+            <div className={cx('loading-overlay', loading ? 'show' : '')}>
+                <div className={styles['loading-spinner']}>
                     <i className="fas fa-spinner fa-spin"></i>
                     <p>Đang tạo tài khoản...</p>
                 </div>

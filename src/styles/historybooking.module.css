@@ -108,7 +108,8 @@
     gap: var(--spacing-md);
     margin-bottom: var(--spacing-lg);
     flex-wrap: wrap;
-    margin-right: 40rem;
+    margin-right: 0;
+    align-items: center;
 }
 
 .filter-group {
@@ -645,7 +646,7 @@
     
     .filters-bar {
         flex-direction: column;
-        margin-right: 20rem;
+        margin-right: 0;
     }
     
     .booking-card-body {

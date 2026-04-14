@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import axiosClient from '../services/api';
 import Header from '../components/Header';
-import '../styles/booking.css'; 
-import '../styles/payment.css'; 
+import bookingStyles from '../styles/booking.module.css';
+import styles from '../styles/payment.module.css'; 
 
 const Payment = () => {
+    const bx = (...classes) => classes.map((name) => bookingStyles[name] || name).join(' ');
+    const cx = (...classes) => classes.map((name) => styles[name] || name).join(' ');
     const location = useLocation();
     const navigate = useNavigate();
     
@@ -139,37 +141,37 @@ const Payment = () => {
     return (
         <>
             <Header />
-            <main className="booking-page">
+            <main className={bookingStyles['booking-page']}>
                 <div className="container">
-                    <h1 className="page-title">Thanh Toán</h1>
+                    <h1 className={bookingStyles['page-title']}>Thanh Toán</h1>
                     
                     {/* Progress Steps */}
-                    <div className="booking-steps">
-                        <div className="step completed">
-                            <div className="step-number"><i className="fas fa-check"></i></div>
+                    <div className={bookingStyles['booking-steps']}>
+                        <div className={bx('step', 'completed')}>
+                            <div className={bookingStyles['step-number']}><i className="fas fa-check"></i></div>
                             <span>Thông tin</span>
                         </div>
-                        <div className="step active">
-                            <div className="step-number">2</div>
+                        <div className={bx('step', 'active')}>
+                            <div className={bookingStyles['step-number']}>2</div>
                             <span>Thanh toán</span>
                         </div>
-                        <div className="step">
-                            <div className="step-number">3</div>
+                        <div className={bookingStyles.step}>
+                            <div className={bookingStyles['step-number']}>3</div>
                             <span>Vé điện tử</span>
                         </div>
                     </div>
 
-                    <div className="booking-layout">
+                    <div className={bookingStyles['booking-layout']}>
                         {/* Payment Form */}
-                        <div className="booking-form-container">
-                            <div className="form-section">
+                        <div className={bookingStyles['booking-form-container']}>
+                            <div className={bookingStyles['form-section']}>
                                 <h2><i className="fas fa-credit-card"></i> Phương thức thanh toán</h2>
                                 
-                                <div className="payment-methods">
+                                <div className={styles['payment-methods-pm']}>
                                     {paymentMethods.map(method => {
                                         const { icon, class: iconClass } = getMethodIcon(method.nameMethod);
                                         return (
-                                            <label className="payment-method" key={method.id}>
+                                            <label className={styles['payment-method']} key={method.id}>
                                                 <input 
                                                     type="radio" 
                                                     name="payment" 
@@ -177,14 +179,14 @@ const Payment = () => {
                                                     checked={selectedMethod === method.id}
                                                     onChange={() => setSelectedMethod(method.id)} 
                                                 />
-                                                <div className="method-content">
-                                                    <div className={`method-icon ${iconClass}`}>
+                                                <div className={styles['method-content']}>
+                                                    <div className={cx('method-icon', iconClass)}>
                                                         <i className={`fas ${icon}`}></i>
                                                     </div>
-                                                    <div className="method-info">
+                                                    <div className={styles['method-info']}>
                                                         <h4>{method.nameMethod}</h4>
                                                     </div>
-                                                    <i className="fas fa-check-circle method-check"></i>
+                                                    <i className={cx('fas', 'fa-check-circle', 'method-check')}></i>
                                                 </div>
                                             </label>
                                         );
@@ -194,33 +196,33 @@ const Payment = () => {
 
                             {/* Payment Details (Hiện động theo loại thanh toán nếu là Chuyển khoản) */}
                             {selectedMethodName.includes('chuyển khoản') && (
-                                <div className="form-section payment-details">
+                                <div className={cx(bx('form-section'), 'payment-details')}>
                                     <h3><i className="fas fa-info-circle"></i> Thông tin chuyển khoản</h3>
-                                    <div className="bank-info">
-                                        <div className="bank-item">
-                                            <span className="bank-label">Ngân hàng:</span>
+                                    <div className={styles['bank-info']}>
+                                        <div className={styles['bank-item']}>
+                                            <span className={styles['bank-label']}>Ngân hàng:</span>
                                             <strong>Vietcombank - CN Đà Nẵng</strong>
                                         </div>
-                                        <div className="bank-item">
-                                            <span className="bank-label">Số tài khoản:</span>
+                                        <div className={styles['bank-item']}>
+                                            <span className={styles['bank-label']}>Số tài khoản:</span>
                                             <strong>0123456789</strong>
-                                            <button className="btn-copy" onClick={() => navigator.clipboard.writeText('0123456789')}>
+                                            <button className={styles['btn-copy']} onClick={() => navigator.clipboard.writeText('0123456789')}>
                                                 <i className="fas fa-copy"></i>
                                             </button>
                                         </div>
-                                        <div className="bank-item">
-                                            <span className="bank-label">Chủ tài khoản:</span>
+                                        <div className={styles['bank-item']}>
+                                            <span className={styles['bank-label']}>Chủ tài khoản:</span>
                                             <strong>CÔNG TY DU LỊCH VIETTRAVEL</strong>
                                         </div>
-                                        <div className="bank-item">
-                                            <span className="bank-label">Nội dung:</span>
+                                        <div className={styles['bank-item']}>
+                                            <span className={styles['bank-label']}>Nội dung:</span>
                                             <strong>DATTOUR {bookingId}</strong>
-                                            <button className="btn-copy" onClick={() => navigator.clipboard.writeText(`DATTOUR ${bookingId}`)}>
+                                            <button className={styles['btn-copy']} onClick={() => navigator.clipboard.writeText(`DATTOUR ${bookingId}`)}>
                                                 <i className="fas fa-copy"></i>
                                             </button>
                                         </div>
                                     </div>
-                                    <div className="payment-note">
+                                    <div className={styles['payment-note']}>
                                         <i className="fas fa-exclamation-circle"></i>
                                         <p>Vui lòng chuyển khoản chính xác nội dung để chúng tôi xác nhận nhanh nhất</p>
                                     </div>
@@ -228,16 +230,16 @@ const Payment = () => {
                             )}
 
                             {/* Terms */}
-                            <div className="form-section">
-                                <label className="checkbox-container">
+                            <div className={bookingStyles['form-section']}>
+                                <label className={styles['checkbox-container']}>
                                     <input 
                                         type="checkbox" 
                                         checked={acceptTerms}
                                         onChange={(e) => setAcceptTerms(e.target.checked)} 
                                         required 
                                     />
-                                    <span className="checkmark"></span>
-                                    <span className="checkbox-label" style={{ marginLeft: '10px' }}>
+                                    <span className={styles.checkmark}></span>
+                                    <span className={styles['checkbox-label']} style={{ marginLeft: '10px' }}>
                                         Tôi đã đọc và đồng ý với 
                                         <a href="#" target="_blank" style={{ color: 'var(--primary)', margin: '0 4px' }}>Điều khoản và điều kiện</a> 
                                         và <a href="#" target="_blank" style={{ color: 'var(--primary)', margin: '0 4px' }}>Chính sách hủy tour</a>
@@ -248,11 +250,11 @@ const Payment = () => {
                             {error && <div style={{ color: 'var(--danger)', marginBottom: '15px', padding: '10px', backgroundColor: '#ffebee', borderRadius: '8px' }}>{error}</div>}
 
                             {/* Actions */}
-                            <div className="form-actions">
-                                <button className="btn-back" onClick={() => navigate(-1)}>
+                            <div className={bookingStyles['form-actions']}>
+                                <button className={bookingStyles['btn-back']} onClick={() => navigate(-1)}>
                                     <i className="fas fa-arrow-left"></i> Quay lại
                                 </button>
-                                <button className="btn-continue" onClick={handleProcessPayment} disabled={isProcessing}>
+                                <button className={bookingStyles['btn-continue']} onClick={handleProcessPayment} disabled={isProcessing}>
                                     <i className={isProcessing ? "fas fa-spinner fa-spin" : "fas fa-check"}></i> 
                                     {isProcessing ? " Đang xử lý..." : " Xác nhận thanh toán"}
                                 </button>
@@ -260,61 +262,61 @@ const Payment = () => {
                         </div>
 
                         {/* Booking Summary */}
-                        <aside className="booking-summary">
-                            <div className="summary-card">
+                        <aside className={bookingStyles['booking-summary']}>
+                            <div className={bookingStyles['summary-card']}>
                                 <h3>Thông tin tour</h3>
                                 <img src={infoTour?.image || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400"} alt="Tour" style={{ borderRadius: '8px', marginBottom: '15px' }} />
                                 <h4>{infoTour?.tourName}</h4>
-                                <div className="summary-item">
+                                <div className={bookingStyles['summary-item']}>
                                     <i className="fas fa-map-marker-alt"></i>
                                     <span>{infoTour?.city}</span>
                                 </div>
-                                <div className="summary-item">
+                                <div className={bookingStyles['summary-item']}>
                                     <i className="fas fa-calendar"></i>
                                     <span>{infoTour ? formatDate(infoTour.startDate) : ''}</span>
                                 </div>
-                                <div className="summary-item">
+                                <div className={bookingStyles['summary-item']}>
                                     <i className="fas fa-clock"></i>
                                     <span>{infoTour ? formatTime(infoTour.startTime) : ''}</span>
                                 </div>
                                 
-                                <div className="divider"></div>
+                                <div className={bookingStyles.divider}></div>
                                 
                                 <h4>Khách hàng</h4>
-                                <div className="summary-item">
+                                <div className={bookingStyles['summary-item']}>
                                     <i className="fas fa-user"></i>
                                     <span>{bookingDetail?.nameGuest}</span>
                                 </div>
-                                <div className="summary-item">
+                                <div className={bookingStyles['summary-item']}>
                                     <i className="fas fa-phone"></i>
                                     <span>{bookingDetail?.phoneNumber}</span>
                                 </div>
-                                <div className="summary-item">
+                                <div className={bookingStyles['summary-item']}>
                                     <i className="fas fa-envelope"></i>
                                     <span>{bookingDetail?.email}</span>
                                 </div>
                                 
-                                <div className="divider"></div>
+                                <div className={bookingStyles.divider}></div>
                                 
                                 <h4>Chi tiết giá</h4>
-                                <div className="price-breakdown">
-                                    <div className="price-item">
+                                <div className={bookingStyles['price-breakdown']}>
+                                    <div className={bookingStyles['price-item']}>
                                         <span>{bookingDetail?.adultNumber} x Người lớn</span>
                                         <span>{formatPrice(bookingDetail?.adultNumber * infoTour?.adultPrice)}</span>
                                     </div>
                                     {bookingDetail?.childNumber > 0 && (
-                                        <div className="price-item">
+                                        <div className={bookingStyles['price-item']}>
                                             <span>{bookingDetail?.childNumber} x Trẻ em</span>
                                             <span>{formatPrice(bookingDetail?.childNumber * infoTour?.childPrice)}</span>
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="divider"></div>
+                                <div className={bookingStyles.divider}></div>
                                 
-                                <div className="total-summary">
+                                <div className={bookingStyles['total-summary']}>
                                     <span>Tổng cần thanh toán:</span>
-                                    <span className="total-price">{formatPrice(bookingDetail?.totalAmount)}</span>
+                                    <span className={bookingStyles['booking-total-price']}>{formatPrice(bookingDetail?.totalAmount)}</span>
                                 </div>
                             </div>
                         </aside>
@@ -325,8 +327,8 @@ const Payment = () => {
             {/* Success QR Modal */}
             {showSuccessModal && ticketInfo && (
                 <div className="modal" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
-                    <div className="modal-content success-modal" style={{ background: 'white', padding: '2rem', borderRadius: '16px', textAlign: 'center', maxWidth: '400px' }}>
-                        <div className="success-icon" style={{ fontSize: '4rem', color: 'var(--success)', marginBottom: '1rem' }}>
+                    <div className={cx('modal-content', 'success-modal')} style={{ background: 'white', padding: '2rem', borderRadius: '16px', textAlign: 'center', maxWidth: '400px' }}>
+                        <div className={styles['success-icon']} style={{ fontSize: '4rem', color: 'var(--success)', marginBottom: '1rem' }}>
                             <i className="fas fa-check-circle"></i>
                         </div>
                         <h2 style={{ marginBottom: '0.5rem' }}>Thanh toán thành công!</h2>
@@ -341,15 +343,15 @@ const Payment = () => {
                             />
                         </div>
 
-                        <div className="booking-code" style={{ background: 'var(--bg-light)', padding: '0.5rem', borderRadius: '8px', marginBottom: '1.5rem', fontWeight: 'bold', fontSize: '1.2rem' }}>
+                        <div className={styles['booking-code']} style={{ background: 'var(--bg-light)', padding: '0.5rem', borderRadius: '8px', marginBottom: '1.5rem', fontWeight: 'bold', fontSize: '1.2rem' }}>
                             <span>Mã vé: {ticketInfo.idTicket}</span>
                         </div>
                         
-                        <p className="success-note" style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                        <p className={styles['success-note']} style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>
                             Mã vé QR đã được gửi về email của bạn. Vui lòng xuất trình mã này cho Hướng dẫn viên khi bắt đầu tour.
                         </p>
                         
-                        <div className="success-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                        <div className={styles['success-actions']} style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                             <button className="btn-secondary" onClick={() => navigate('/')}>
                                 Về trang chủ
                             </button>
