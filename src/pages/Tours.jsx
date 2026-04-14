@@ -14,7 +14,7 @@ const Tours = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const pageSize = 9;
+    const pageSize = 10;
 
     // Tìm kiếm, Lọc và Sắp xếp
     const [searchText, setSearchText] = useState('');
@@ -34,13 +34,19 @@ const Tours = () => {
     const fetchDefaultTours = async (page) => {
         setLoading(true);
         try {
-            const response = await axiosClient.get(`/tours/all-by-status`, {
-                params: { page: page, size: pageSize }
+            const response = await axiosClient.get(`/tours/status`, {
+                params: {
+                    status: "Đang mở",
+                    page: page - 1, // Spring Pageable bắt đầu từ 0
+                    size: pageSize
+                }
             });
-            // Ánh xạ dữ liệu dựa trên Map trả về từ Backend
-            setTours(response.data.data || []); 
+
+            // Ánh xạ dữ liệu dựa trên PageResponse từ Backend
+            setTours(response.data.content || []); 
             setTotalPages(response.data.totalPages || 1);
-            setTotalItems(response.data.total || 0);
+            setTotalItems(response.data.totalElements || 0);
+            
         } catch (error) {
             console.error("Lỗi khi lấy danh sách tour:", error);
         } finally {
@@ -285,7 +291,7 @@ const Tours = () => {
                                     {sortedTours.map((tour) => (
                                         <div key={tour.id} className="tour-item">
                                             <div className="tour-image">
-                                                <img src={tour.tourImage || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800"} alt={tour.tourName} />
+                                                <img src={tour.image || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800"} alt={tour.tourName} />
                                                 <button className="tour-favorite">
                                                     <i className="far fa-heart"></i>
                                                 </button>
@@ -294,7 +300,7 @@ const Tours = () => {
                                                 <div className="tour-header">
                                                     <div className="tour-location">
                                                         <i className="fas fa-map-marker-alt"></i>
-                                                        <span>{tour.destination}</span>
+                                                        <span>{tour.city}</span>
                                                     </div>
                                                     <div className="tour-rating">
                                                         <i className="fas fa-star"></i>
@@ -303,10 +309,7 @@ const Tours = () => {
                                                 </div>
                                                 <h3 className="tour-name">{tour.tourName}</h3>
                                                 <p className="tour-desc">{tour.describe}</p>
-                                                <div className="tour-features">
-                                                    {tour.startDate && <span><i className="fas fa-calendar"></i> Khởi hành: {tour.startDate}</span>}
-                                                    <span><i className="fas fa-users"></i> {tour.slot} chỗ</span>
-                                                </div>
+                                                
                                                 <div className="tour-footer">
                                                     <div className="tour-price">
                                                         <span className="price-label">Từ</span>
@@ -361,4 +364,4 @@ const Tours = () => {
     );
 };
 
-export default Tours;
+export default Tours;   

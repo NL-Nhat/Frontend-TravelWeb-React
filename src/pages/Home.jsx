@@ -13,15 +13,23 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Gọi cả 2 API cùng lúc
+        // Gọi cả 4 API cùng lúc
         const [toursRes, tourCountRes, userCountRes, reviewsRes] = await Promise.all([
-          api.get('/tours/top5tour'),
+          api.get('/tours/status', {
+              params: {
+                  status: 'Đang mở',
+                  page: 0,
+                  size: 9,
+                  sort: 'id,desc' // Sắp xếp giảm dần theo ID để lấy 10 tour mới nhất
+              }
+          }),
           api.get('/tours/count-all-tour'),
           api.get('/users/count-user'),
           api.get('/reviews/top3review')
         ]);
 
-        setTours(toursRes.data);
+        // Ánh xạ data.content vì API là PageResponse
+        setTours(toursRes.data.content || []);
         setTourCount(tourCountRes.data);
         setUserCount(userCountRes.data);
         setReviews(reviewsRes.data);
@@ -157,7 +165,7 @@ const Home = () => {
               tours.map((tour) => (
                 <div key={tour.id} className="tour-card">
                   <div className="tour-image">
-                    <img src={tour.tourImage} alt={tour.tourName}/>
+                    <img src={tour.image} alt={tour.tourName}/>
                     <div className="tour-badge">Bán chạy</div>
                     <button className="tour-favorite">
                       <i className="far fa-heart"></i>
@@ -170,7 +178,7 @@ const Home = () => {
                     <div className="tour-header">
                       <div className="tour-location">
                         <i className="fas fa-map-marker-alt"></i>
-                        <span>{tour.destination}</span>
+                        <span>{tour.city}</span>
                       </div>
                       <div className="tour-rating">
                         <i className="fas fa-star"></i>
@@ -179,20 +187,13 @@ const Home = () => {
                     </div>
                     <h3 className="tour-title">{tour.tourName}</h3>
                     <p className="tour-description">{tour.describe ? tour.describe.substring(0, 60) + "..." : "Khám phá hành trình thú vị"}</p>
-                    <div className="tour-features">
-                      <span className="feature-item">
-                        <i className="fas fa-clock"></i> 1 ngày
-                      </span>
-                      <span className="feature-item">
-                        <i className="fas fa-users"></i> {tour.slot} chỗ
-                      </span>
-                    </div>
+                    
                     <div className="tour-footer">
                       <div className="tour-price">
                         <span className="price-from">Từ</span>
                         <span className="price-amount">{formatPrice(tour.adultPrice)}</span>
                       </div>
-                      <button className="btn-book">Đặt ngay</button>
+                      <Link to={`/tour-detail/${tour.id}`} className="btn-book">Đặt ngay</Link>
                     </div>
                   </div>
                 </div>
@@ -300,7 +301,7 @@ const Home = () => {
                               alt={review.avatar}
                             />
                             <div className="author-info">
-                                <h4>{review.fullName}</h4>
+                                <h4>{review.userName}</h4>
                                 <p>{review.tourName} - {new Date(review.createAt).toLocaleDateString('vi-VN')}</p>
                             </div>
                         </div>
