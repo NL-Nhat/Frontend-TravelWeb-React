@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import axiosClient from '../services/api';
 import Header from '../components/Header';
-import '../styles/booking.css'; // File CSS bạn đã cung cấp
+import styles from '../styles/booking.module.css';
 
 const Booking = () => {
+    const cx = (...classes) => classes.map((name) => styles[name] || name).join(' ');
     const { id } = useParams(); // Lấy ID tour từ URL (nếu có sử dụng)
     const location = useLocation(); // Lấy dữ liệu được truyền từ trang TourDetail
     const navigate = useNavigate();
@@ -141,32 +142,32 @@ const Booking = () => {
     return (
         <>
             <Header />
-            <main className="booking-page">
+            <main className={styles['booking-page']}>
                 <div className="container">
-                    <h1 className="page-title">Đặt Tour</h1>
+                    <h1 className={styles['page-title']}>Đặt Tour</h1>
                     
-                    <div className="booking-steps">
-                        <div className="step active">
-                            <div className="step-number">1</div>
+                    <div className={styles['booking-steps']}>
+                        <div className={cx('step', 'active')}>
+                            <div className={styles['step-number']}>1</div>
                             <span>Thông tin</span>
                         </div>
-                        <div className="step">
-                            <div className="step-number">2</div>
+                        <div className={styles.step}>
+                            <div className={styles['step-number']}>2</div>
                             <span>Thanh toán</span>
                         </div>
-                        <div className="step">
-                            <div className="step-number">3</div>
+                        <div className={styles.step}>
+                            <div className={styles['step-number']}>3</div>
                             <span>Vé điện tử</span>
                         </div>
                     </div>
 
-                    <div className="booking-layout">
+                    <div className={styles['booking-layout']}>
                         {/* Left Side: Form Information */}
-                        <form className="booking-form-container" onSubmit={handleConfirmBooking}>
-                            <div className="form-section">
+                        <form className={styles['booking-form-container']} onSubmit={handleConfirmBooking}>
+                            <div className={styles['form-section']}>
                                 <h2><i className="fas fa-user"></i> Thông tin người đặt</h2>
-                                <div className="form-row">
-                                    <div className="form-field">
+                                <div className={styles['form-row']}>
+                                    <div className={styles['form-field']}>
                                         <label>Họ và tên *</label>
                                         <input 
                                             type="text" 
@@ -177,7 +178,7 @@ const Booking = () => {
                                             required 
                                         />
                                     </div>
-                                    <div className="form-field">
+                                    <div className={styles['form-field']}>
                                         <label>Số điện thoại *</label>
                                         <input 
                                             type="tel" 
@@ -189,8 +190,8 @@ const Booking = () => {
                                         />
                                     </div>
                                 </div>
-                                <div className="form-row">
-                                    <div className="form-field">
+                                <div className={styles['form-row']}>
+                                    <div className={styles['form-field']}>
                                         <label>Email *</label>
                                         <input 
                                             type="email" 
@@ -201,7 +202,7 @@ const Booking = () => {
                                             required 
                                         />
                                     </div>
-                                    <div className="form-field">
+                                    <div className={styles['form-field']}>
                                         <label>Địa chỉ</label>
                                         <input 
                                             type="text" 
@@ -212,8 +213,8 @@ const Booking = () => {
                                         />
                                     </div>
                                 </div>
-                                <div className="form-row">
-                                    <div className="form-field">
+                                <div className={styles['form-row']}>
+                                    <div className={styles['form-field']}>
                                         <label>Ngày sinh *</label>
                                         <input 
                                             type="date" 
@@ -223,7 +224,7 @@ const Booking = () => {
                                             required
                                         />
                                     </div>
-                                    <div className="form-field">
+                                    <div className={styles['form-field']}>
                                         <label>Giới tính *</label>
                                         <select name="gender" value={formData.gender} onChange={handleInputChange} required>
                                             <option value="">-- Chọn giới tính --</option>
@@ -235,7 +236,7 @@ const Booking = () => {
                                 </div>
                             </div>
 
-                            <div className="form-section">
+                            <div className={styles['form-section']}>
                                 <h2><i className="fas fa-comment"></i> Ghi chú</h2>
                                 <textarea 
                                     rows="4" 
@@ -249,56 +250,56 @@ const Booking = () => {
                             {/* Báo lỗi API */}
                             {error && <div style={{ color: 'var(--danger)', marginBottom: '15px', padding: '10px', backgroundColor: '#ffebee', borderRadius: '8px' }}>{error}</div>}
 
-                            <div className="form-actions">
-                                <button type="button" className="btn-back" onClick={() => navigate(-1)}>
+                            <div className={styles['form-actions']}>
+                                <button type="button" className={styles['btn-back']} onClick={() => navigate(-1)}>
                                     <i className="fas fa-arrow-left"></i> Quay lại
                                 </button>
-                                <button type="submit" className="btn-continue" disabled={isSubmitting}>
+                                <button type="submit" className={styles['btn-continue']} disabled={isSubmitting}>
                                     {isSubmitting ? "Đang xử lý..." : "Xác nhận đặt tour"}
                                 </button>
                             </div>
                         </form>
 
                         {/* Right Side: Booking Summary */}
-                        <aside className="booking-summary">
-                            <div className="summary-card">
+                        <aside className={styles['booking-summary']}>
+                            <div className={styles['summary-card']}>
                                 <h3>Thông tin tour</h3>
                                 <img src={scheduleInfo?.image || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400"} alt="Tour" style={{ borderRadius: '8px', marginBottom: '15px' }} />
                                 <h4>{scheduleInfo?.tourName}</h4>
-                                <div className="summary-item">
+                                <div className={styles['summary-item']}>
                                     <i className="fas fa-map-marker-alt"></i>
                                     <span>{scheduleInfo?.city}</span>
                                 </div>
-                                <div className="summary-item">
+                                <div className={styles['summary-item']}>
                                     <i className="fas fa-calendar"></i>
                                     <span>{scheduleInfo ? formatDate(scheduleInfo.startDate) : ''}</span>
                                 </div>
-                                <div className="summary-item">
+                                <div className={styles['summary-item']}>
                                     <i className="fas fa-clock"></i>
                                     <span>{scheduleInfo ? formatTime(scheduleInfo.startTime) : ''}</span>
                                 </div>
                                 
-                                <div className="divider"></div>
+                                <div className={styles.divider}></div>
                                 
                                 <h4>Chi tiết giá</h4>
-                                <div className="price-breakdown">
-                                    <div className="price-item">
+                                <div className={styles['price-breakdown']}>
+                                    <div className={styles['price-item']}>
                                         <span>{bookingState.adultCount} x Người lớn</span>
                                         <span>{formatPrice(bookingState.adultCount * scheduleInfo?.adultPrice)}</span>
                                     </div>
                                     {bookingState.childCount > 0 && (
-                                        <div className="price-item">
+                                        <div className={styles['price-item']}>
                                             <span>{bookingState.childCount} x Trẻ em</span>
                                             <span>{formatPrice(bookingState.childCount * scheduleInfo?.childPrice)}</span>
                                         </div>
                                     )}
                                 </div>
                                 
-                                <div className="divider"></div>
+                                <div className={styles.divider}></div>
                                 
-                                <div className="total-summary">
+                                <div className={styles['total-summary']}>
                                     <span>Tổng cộng:</span>
-                                    <span className="booking-total-price">{formatPrice(totalAmount)}</span>
+                                    <span className={styles['booking-total-price']}>{formatPrice(totalAmount)}</span>
                                 </div>
                             </div>
                         </aside>
@@ -309,22 +310,22 @@ const Booking = () => {
             {/* Success Modal */}
             {showSuccessModal && (
                 <div className="modal" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
-                    <div className="modal-content success-modal" style={{ background: 'white', padding: '2rem', borderRadius: '16px', textAlign: 'center', maxWidth: '400px' }}>
-                        <div className="success-icon" style={{ fontSize: '4rem', color: 'var(--success)', marginBottom: '1rem' }}>
+                    <div className={cx('modal-content', 'success-modal')} style={{ background: 'white', padding: '2rem', borderRadius: '16px', textAlign: 'center', maxWidth: '400px' }}>
+                        <div className={styles['success-icon']} style={{ fontSize: '4rem', color: 'var(--success)', marginBottom: '1rem' }}>
                             <i className="fas fa-check-circle"></i>
                         </div>
                         <h2 style={{ marginBottom: '0.5rem' }}>Đặt tour thành công!</h2>
                         <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem' }}>Cảm ơn bạn đã đặt tour tại VietTravel</p>
                         
-                        <div className="booking-code" style={{ background: 'var(--bg-light)', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', fontWeight: 'bold' }}>
+                        <div className={styles['booking-code']} style={{ background: 'var(--bg-light)', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', fontWeight: 'bold' }}>
                             <span>Thanh toán ngay để giữ chỗ</span>
                         </div>
                         
-                        <p className="success-note" style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                        <p className={styles['success-note']} style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>
                             Thông tin đặt tour đã được lưu. Vui lòng thanh toán để xác nhận hành trình của bạn.
                         </p>
                         
-                        <div className="success-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                        <div className={styles['success-actions']} style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                             <button type="button" className="btn-secondary" onClick={() => navigate('/booking-detail', { state: { bookingId: bookingId } })}>
                                 Xem chi tiết đặt tour
                             </button>

@@ -1,7 +1,7 @@
 /* Payment Page Styles */
 
 /* Payment Methods */
-.payment-methods {
+.payment-methods-pm {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosClient from '../services/api';
-import '../styles/auth.css';
+import styles from '../styles/auth.module.css';
 
 const Login = () => {
+    const cx = (...classes) => classes.map((name) => styles[name] || name).join(' ');
     const navigate = useNavigate();
 
     // Tự động chuyển hướng nếu người dùng đã đăng nhập từ trước
@@ -76,71 +77,71 @@ const Login = () => {
     };
 
     return (
-        <div className="auth-page">
-            <div className="auth-container">
+        <div className={styles['auth-page']}>
+            <div className={styles['auth-container']}>
                 {/* Left Side - Visual */}
-                <div className="auth-visual">
-                    <div className="visual-overlay"></div>
-                    <div className="visual-content">
-                        <Link to="/" className="auth-logo">
+                <div className={styles['auth-visual']}>
+                    <div className={styles['visual-overlay']}></div>
+                    <div className={styles['visual-content']}>
+                        <Link to="/" className={styles['auth-logo']}>
                             <i className="fas fa-compass"></i>
                             <span>VietTravel</span>
                         </Link>
-                        <div className="visual-text">
+                        <div className={styles['visual-text']}>
                             <h2>Khám phá Việt Nam</h2>
                             <p>Hàng trăm điểm đến tuyệt vời đang chờ đón bạn</p>
                         </div>
-                        <div className="visual-features">
-                            <div className="feature-item">
+                        <div className={styles['visual-features']}>
+                            <div className={styles['feature-item']}>
                                 <i className="fas fa-check-circle"></i>
                                 <span>100+ Tour du lịch</span>
                             </div>
-                            <div className="feature-item">
+                            <div className={styles['feature-item']}>
                                 <i className="fas fa-check-circle"></i>
                                 <span>Giá tốt nhất</span>
                             </div>
-                            <div className="feature-item">
+                            <div className={styles['feature-item']}>
                                 <i className="fas fa-check-circle"></i>
                                 <span>Hỗ trợ 24/7</span>
                             </div>
                         </div>
                     </div>
-                    <div className="visual-slider">
-                        <div className="slider-dots">
-                            <span className="dot active"></span>
-                            <span className="dot"></span>
-                            <span className="dot"></span>
+                    <div className={styles['visual-slider']}>
+                        <div className={styles['slider-dots']}>
+                            <span className={cx('dot', 'active')}></span>
+                            <span className={styles.dot}></span>
+                            <span className={styles.dot}></span>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Side - Login Form */}
-                <div className="auth-form-container">
-                    <div className="auth-form-wrapper">
-                        <div className="auth-header">
+                <div className={styles['auth-form-container']}>
+                    <div className={styles['auth-form-wrapper']}>
+                        <div className={styles['auth-header']}>
                             <h1>Chào mừng trở lại!</h1>
                             <p>Đăng nhập để tiếp tục hành trình của bạn</p>
                         </div>
 
                         {/* Social Login */}
-                        <div className="social-login">
-                            <button className="social-btn google">
+                        <div className={styles['social-login']}>
+                            <button className={cx('social-btn', 'google')}>
                                 <i className="fab fa-google"></i>
                                 <span>Đăng nhập với Google</span>
                             </button>
-                            <button className="social-btn facebook">
+                            <button className={cx('social-btn', 'facebook')}>
                                 <i className="fab fa-facebook-f"></i>
                                 <span>Đăng nhập với Facebook</span>
                             </button>
                         </div>
 
-                        <div className="divider">
+                        <div className={styles.divider}>
                             <span>hoặc</span>
                         </div>
 
                         {/* Login Form */}
-                        <form className="auth-form" onSubmit={handleLogin}>
-                            <div className="form-group">
+                        <form className={styles['auth-form']} onSubmit={handleLogin}>
+                            <div className={styles['form-group']}>
                                 <label htmlFor="userName">
                                     <i className="fas fa-user"></i>
                                     Tên đăng nhập
@@ -155,12 +156,12 @@ const Login = () => {
                                 />
                             </div>
 
-                            <div className="form-group">
+                            <div className={styles['form-group']}>
                                 <label htmlFor="password">
                                     <i className="fas fa-lock"></i>
                                     Mật khẩu
                                 </label>
-                                <div className="password-input">
+                                <div className={styles['password-input']}>
                                     <input 
                                         type={showPassword ? "text" : "password"} 
                                         id="password" 
@@ -171,7 +172,7 @@ const Login = () => {
                                     />
                                     <button 
                                         type="button" 
-                                        className="toggle-password" 
+                                        className={styles['toggle-password']} 
                                         onClick={() => setShowPassword(!showPassword)}
                                     >
                                         <i className={showPassword ? "far fa-eye-slash" : "far fa-eye"}></i>
@@ -182,25 +183,25 @@ const Login = () => {
                             {/* Hiển thị lỗi nếu có */}
                             {error && <div style={{ color: 'var(--danger)', fontSize: '0.9rem', textAlign: 'center', marginTop: '10px' }}>{error}</div>}
 
-                            <div className="form-options">
-                                <label className="remember-me">
+                            <div className={styles['form-options']}>
+                                <label className={styles['remember-me']}>
                                     <input type="checkbox" id="rememberMe" />
                                     <span>Ghi nhớ đăng nhập</span>
                                 </label>
-                                <Link to="/forgot-password" className="forgot-password">Quên mật khẩu?</Link>
+                                <Link to="/forgot-password" className={styles['forgot-password']}>Quên mật khẩu?</Link>
                             </div>
 
-                            <button type="submit" className="btn-submit" disabled={loading}>
+                            <button type="submit" className={styles['btn-submit']} disabled={loading}>
                                 <span>{loading ? "Đang xử lý..." : "Đăng nhập"}</span>
                                 {!loading && <i className="fas fa-arrow-right"></i>}
                             </button>
                         </form>
 
-                        <div className="auth-footer">
+                        <div className={styles['auth-footer']}>
                             <p>Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link></p>
                         </div>
 
-                        <div className="auth-help">
+                        <div className={styles['auth-help']}>
                             <p>Cần hỗ trợ? <Link to="/contact">Liên hệ chúng tôi</Link></p>
                         </div>
                     </div>
@@ -208,8 +209,8 @@ const Login = () => {
             </div>
 
             {/* Loading Overlay */}
-            <div className={`loading-overlay ${loading ? 'show' : ''}`}>
-                <div className="loading-spinner">
+            <div className={cx('loading-overlay', loading ? 'show' : '')}>
+                <div className={styles['loading-spinner']}>
                     <i className="fas fa-spinner fa-spin"></i>
                     <p>Đang đăng nhập...</p>
                 </div>

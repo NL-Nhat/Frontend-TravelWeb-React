@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axiosClient from '../services/api'; // Đường dẫn tới file cấu hình axios của bạn
 import Header from '../components/Header';
-import '../styles/tours.css';
+import styles from '../styles/tours.module.css';
 
 const Tours = () => {
+    const cx = (...classes) => classes.map((name) => styles[name] || name).join(' ');
+
     // 1. Quản lý State
     const [tours, setTours] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -14,7 +16,7 @@ const Tours = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const pageSize = 10;
+    const pageSize = 12;
 
     // Tìm kiếm, Lọc và Sắp xếp
     const [searchText, setSearchText] = useState('');
@@ -38,7 +40,8 @@ const Tours = () => {
                 params: {
                     status: "Đang mở",
                     page: page - 1, // Spring Pageable bắt đầu từ 0
-                    size: pageSize
+                    size: pageSize,
+                    sort: 'id,desc'
                 }
             });
 
@@ -152,7 +155,7 @@ const Tours = () => {
         <>
             <Header />
             {/* Page Header */}
-            <section className="page-header">
+            <section className={styles['page-header-tour']}>
                 <div className="container">
                     <h1>Khám Phá Tour Du Lịch</h1>
                     <p>Tìm kiếm và khám phá hơn {totalItems}+ tour du lịch độc đáo khắp Việt Nam</p>
@@ -160,23 +163,23 @@ const Tours = () => {
             </section>
 
             {/* Tours Listing */}
-            <section className="tours-listing">
+            <section className={styles['tours-listing']}>
                 <div className="container">
-                    <div className="listing-layout">
+                    <div className={styles['listing-layout']}>
                         
                         {/* Sidebar Filters */}
-                        <aside className="filters-sidebar">
-                            <div className="filter-section">
-                                <h3 className="filter-title"><i className="fas fa-filter"></i> Bộ lọc</h3>
-                                <button className="btn-reset" onClick={resetFilters}>
+                        <aside className={styles['filters-sidebar']}>
+                            <div className={styles['filter-section']}>
+                                <h3 className={styles['filter-title']}><i className="fas fa-filter"></i> Bộ lọc</h3>
+                                <button className={styles['btn-reset']} onClick={resetFilters}>
                                     <i className="fas fa-redo"></i> Đặt lại
                                 </button>
                             </div>
 
                             {/* Tìm kiếm */}
-                            <div className="filter-group">
-                                <label className="filter-label">Tìm kiếm</label>
-                                <div className="search-input">
+                            <div className={styles['filter-group']}>
+                                <label className={styles['filter-label']}>Tìm kiếm</label>
+                                <div className={styles['search-input']}>
                                     <i className="fas fa-search" onClick={executeSearch} style={{cursor: 'pointer'}}></i>
                                     <input 
                                         type="text" 
@@ -189,11 +192,11 @@ const Tours = () => {
                             </div>
 
                             {/* Điểm đến */}
-                            <div className="filter-group">
-                                <label className="filter-label"><i className="fas fa-map-marker-alt"></i> Điểm đến</label>
-                                <div className="filter-options">
+                            <div className={styles['filter-group']}>
+                                <label className={styles['filter-label']}><i className="fas fa-map-marker-alt"></i> Điểm đến</label>
+                                <div className={styles['filter-options']}>
                                     {cities.map(city => (
-                                        <label key={city} className="checkbox-option">
+                                        <label key={city} className={styles['checkbox-option']}>
                                             <input 
                                                 type="checkbox" 
                                                 checked={filters.city.includes(city)}
@@ -206,9 +209,9 @@ const Tours = () => {
                             </div>
 
                             {/* Khoảng giá */}
-                            <div className="filter-group">
-                                <label className="filter-label"><i className="fas fa-money-bill-wave"></i> Khoảng giá (Tối đa)</label>
-                                <div className="price-range">
+                            <div className={styles['filter-group']}>
+                                <label className={styles['filter-label']}><i className="fas fa-money-bill-wave"></i> Khoảng giá (Tối đa)</label>
+                                <div className={styles['price-range']}>
                                     <input 
                                         type="range" 
                                         min="0" max="10000000" step="100000" 
@@ -216,7 +219,7 @@ const Tours = () => {
                                         onChange={(e) => setFilters({...filters, priceTo: parseInt(e.target.value)})}
                                         onMouseUp={executeFilter} // Kéo xong tự động lọc
                                     />
-                                    <div className="price-values">
+                                    <div className={styles['price-values']}>
                                         <span>0đ</span>
                                         <span style={{color: 'var(--primary)', fontWeight: 'bold'}}>{formatPrice(filters.priceTo)}</span>
                                     </div>
@@ -224,11 +227,11 @@ const Tours = () => {
                             </div>
 
                             {/* Đánh giá */}
-                            <div className="filter-group">
-                                <label className="filter-label"><i className="fas fa-star"></i> Đánh giá</label>
-                                <div className="filter-options">
+                            <div className={styles['filter-group']}>
+                                <label className={styles['filter-label']}><i className="fas fa-star"></i> Đánh giá</label>
+                                <div className={styles['filter-options']}>
                                     {ratings.map(star => (
-                                        <label key={star} className="checkbox-option">
+                                        <label key={star} className={styles['checkbox-option']}>
                                             <input 
                                                 type="checkbox"
                                                 checked={filters.numberStar.includes(star)}
@@ -252,15 +255,15 @@ const Tours = () => {
                         </aside>
 
                         {/* Main Content */}
-                        <main className="tours-main">
+                        <main className={styles['tours-main']}>
                             {/* Toolbar */}
-                            <div className="tours-toolbar">
-                                <div className="results-info">
-                                    <span className="results-count">Tìm thấy <strong>{totalItems}</strong> tour</span>
+                            <div className={styles['tours-toolbar']}>
+                                <div>
+                                    <span className={styles['results-count']}>Tìm thấy <strong>{totalItems}</strong> tour</span>
                                 </div>
                                 
-                                <div className="toolbar-actions">
-                                    <div className="sort-dropdown">
+                                <div className={styles['toolbar-actions']}>
+                                    <div className={styles['sort-dropdown']}>
                                         <select value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
                                             <option value="popular">Sắp xếp: Phổ biến nhất</option>
                                             <option value="price-asc">Giá thấp đến cao</option>
@@ -270,11 +273,11 @@ const Tours = () => {
                                         </select>
                                     </div>
                                     
-                                    <div className="view-toggle">
-                                        <button className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`} onClick={() => setViewMode('grid')}>
+                                    <div className={styles['view-toggle']}>
+                                        <button className={cx('view-btn', viewMode === 'grid' ? 'active' : '')} onClick={() => setViewMode('grid')}>
                                             <i className="fas fa-th"></i>
                                         </button>
-                                        <button className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>
+                                        <button className={cx('view-btn', viewMode === 'list' ? 'active' : '')} onClick={() => setViewMode('list')}>
                                             <i className="fas fa-list"></i>
                                         </button>
                                     </div>
@@ -287,37 +290,37 @@ const Tours = () => {
                             ) : sortedTours.length === 0 ? (
                                 <div style={{textAlign: 'center', padding: '50px'}}>Không tìm thấy tour nào phù hợp.</div>
                             ) : (
-                                <div className={`tours-results ${viewMode === 'list' ? 'list-view' : ''}`}>
+                                <div className={cx('tours-results', viewMode === 'list' ? 'list-view' : '')}>
                                     {sortedTours.map((tour) => (
-                                        <div key={tour.id} className="tour-item">
-                                            <div className="tour-image">
+                                        <div key={tour.id} className={styles['tour-item']}>
+                                            <div className={styles['tour-image']}>
                                                 <img src={tour.image || "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800"} alt={tour.tourName} />
                                                 <button className="tour-favorite">
                                                     <i className="far fa-heart"></i>
                                                 </button>
                                             </div>
-                                            <div className="tour-info">
-                                                <div className="tour-header">
-                                                    <div className="tour-location">
+                                            <div className={styles['tour-info']}>
+                                                <div className={styles['tour-header']}>
+                                                    <div className={styles['tour-location']}>
                                                         <i className="fas fa-map-marker-alt"></i>
                                                         <span>{tour.city}</span>
                                                     </div>
-                                                    <div className="tour-rating">
+                                                    <div className={styles['tour-rating']}>
                                                         <i className="fas fa-star"></i>
                                                         <span>{tour.averageRating || 0}</span>
                                                     </div>
                                                 </div>
-                                                <h3 className="tour-name">{tour.tourName}</h3>
-                                                <p className="tour-desc">{tour.describe}</p>
+                                                <h3 className={styles['tour-name']}>{tour.tourName}</h3>
+                                                <p className={styles['tour-desc']}>{tour.describe}</p>
                                                 
-                                                <div className="tour-footer">
-                                                    <div className="tour-price">
-                                                        <span className="price-label">Từ</span>
-                                                        <span className="price-value">{formatPrice(tour.adultPrice)}</span>
+                                                <div className={styles['tour-footer']}>
+                                                    <div className={styles['tour-price']}>
+                                                        <span className={styles['price-label']}>Từ</span>
+                                                        <span className={styles['price-value']}>{formatPrice(tour.adultPrice)}</span>
                                                     </div>
-                                                    <div className="tour-actions">
-                                                        <Link to={`/tour-detail/${tour.id}`} className="btn-detail">Chi tiết</Link>
-                                                        <Link to={`/booking/${tour.id}`} className="btn-book-now">Đặt ngay</Link>
+                                                    <div className={styles['tour-actions']}>
+                                                        <Link to={`/tour-detail/${tour.id}`} className={styles['btn-detail']}>Chi tiết</Link>
+                                                        <Link to={`/booking/${tour.id}`} className={styles['btn-book-now']}>Đặt ngay</Link>
                                                     </div>
                                                 </div>
                                             </div>
@@ -328,9 +331,9 @@ const Tours = () => {
 
                             {/* Pagination */}
                             {!loading && totalPages > 1 && (
-                                <div className="pagination">
+                                <div className={styles.pagination}>
                                     <button 
-                                        className="page-btn" 
+                                        className={styles['page-btn']} 
                                         disabled={currentPage === 1}
                                         onClick={() => setCurrentPage(prev => prev - 1)}
                                     >
@@ -340,7 +343,7 @@ const Tours = () => {
                                     {[...Array(totalPages)].map((_, i) => (
                                         <button 
                                             key={i + 1} 
-                                            className={`page-btn ${currentPage === i + 1 ? 'active' : ''}`}
+                                            className={cx('page-btn', currentPage === i + 1 ? 'active' : '')}
                                             onClick={() => setCurrentPage(i + 1)}
                                         >
                                             {i + 1}
@@ -348,7 +351,7 @@ const Tours = () => {
                                     ))}
 
                                     <button 
-                                        className="page-btn" 
+                                        className={styles['page-btn']} 
                                         disabled={currentPage === totalPages}
                                         onClick={() => setCurrentPage(prev => prev + 1)}
                                     >

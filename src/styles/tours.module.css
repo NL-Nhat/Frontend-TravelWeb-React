@@ -1,18 +1,18 @@
 /* Tours Listing Page Styles */
 
-.page-header {
+.page-header-tour {
     background: linear-gradient(135deg, var(--secondary), var(--primary));
     padding: calc(var(--spacing-2xl) + 70px) 0 var(--spacing-2xl);
     text-align: center;
     color: white;
 }
 
-.page-header h1 {
+.page-header-tour h1 {
     font-size: clamp(2rem, 5vw, 3.5rem);
     margin-bottom: var(--spacing-sm);
 }
 
-.page-header p {
+.page-header-tour p {
     font-size: 1.125rem;
     opacity: 0.9;
 }
@@ -247,7 +247,7 @@
 /* Tours Results */
 .tours-results {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
 }
@@ -269,7 +269,7 @@
 
 .tour-item .tour-image {
     position: relative;
-    aspect-ratio: 4/3;
+    aspect-ratio: 16/10;
     overflow: hidden;
 }
 
@@ -285,7 +285,7 @@
 }
 
 .tour-info {
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -316,7 +316,7 @@
 }
 
 .tour-name {
-    font-size: 1.125rem;
+    font-size: 1rem;
     margin-bottom: var(--spacing-xs);
     color: var(--text-dark);
     display: -webkit-box;
@@ -327,7 +327,7 @@
 
 .tour-desc {
     color: var(--text-light);
-    font-size: 0.9rem;
+    font-size: 0.83rem;
     margin-bottom: var(--spacing-sm);
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -374,7 +374,7 @@
 }
 
 .price-value {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--primary);
     font-family: 'Clash Display', sans-serif;
@@ -383,18 +383,21 @@
 .tour-actions {
     display: flex;
     gap: var(--spacing-xs);
+    flex-wrap: nowrap;
+    align-items: center;
 }
 
 .btn-detail {
-    padding: 0.5rem 1rem;
+    padding: 0.45rem 0.85rem;
     border: 2px solid var(--primary);
     background: transparent;
     color: var(--primary);
     border-radius: var(--radius-full);
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.82rem;
     text-decoration: none;
     transition: var(--transition);
+    white-space: nowrap;
 }
 
 .btn-detail:hover {
@@ -403,15 +406,16 @@
 }
 
 .btn-book-now {
-    padding: 0.5rem 1rem;
+    padding: 0.45rem 0.85rem;
     background: var(--primary);
     color: white;
     border-radius: var(--radius-full);
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.82rem;
     text-decoration: none;
     transition: var(--transition);
     border: 2px solid var(--primary);
+    white-space: nowrap;
 }
 
 .btn-book-now:hover {
@@ -506,7 +510,7 @@
     }
     
     .tours-results {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     
     .tours-results.list-view .tour-item {
@@ -515,5 +519,11 @@
     
     .tours-results.list-view .tour-image {
         width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .tours-results {
+        grid-template-columns: 1fr;
     }
 }
