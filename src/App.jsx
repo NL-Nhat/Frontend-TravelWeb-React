@@ -6,6 +6,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Account from './pages/Account';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminTours from './pages/admin/AdminTours';
+import AdminTourDetail from './pages/admin/AdminTourDetail';
 import Booking from './pages/Booking';
 import Payment from './pages/Payment';
 import BookingDetail from './pages/BookingDetail';
@@ -25,6 +27,8 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/account" element={<Account />} />
       <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/admin/tours" element={<AdminTours />} />
+      <Route path="/admin/tours/:id" element={<AdminTourDetail />} />
     </Routes>
   );
 }
