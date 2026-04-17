@@ -182,7 +182,6 @@ const TourDetail = () => {
                             {/* Tour Header Info */}
                             <div className={styles['tour-header-info']}>
                                 <div className={styles['tour-meta']}>
-                                    <span className={styles['tour-code']}>Mã tour: T{tourInfo.id?.toString().padStart(4, '0')}</span>
                                     <div className={styles['tour-rating-detail']}>
                                         <div className={styles.stars}>
                                             {[...Array(5)].map((_, i) => (
