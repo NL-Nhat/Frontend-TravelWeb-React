@@ -10,7 +10,7 @@ const STATUS_ACTIVE = 'Đang mở';
 const STATUS_INACTIVE = 'Tạm dừng';
 
 // ── TourRow ──────────────────────────────────────────────────
-const TourRow = ({ tour, isSelected, onSelect, onDelete }) => {
+const TourRow = ({ tour, isSelected, onSelect, onDelete, onEdit }) => {
     const navigate = useNavigate();
     const [imgErr, setImgErr] = useState(false);
     const isActive = tour.status === STATUS_ACTIVE;
@@ -57,7 +57,7 @@ const TourRow = ({ tour, isSelected, onSelect, onDelete }) => {
                     <button className={styles['btn-icon']} title="Xem chi tiết" onClick={() => navigate(`/admin/tours/${tour.id}`)}>
                         <i className="fas fa-eye" />
                     </button>
-                    <button className={styles['btn-icon']} title="Chỉnh sửa tour" onClick={() => navigate(`/admin/tours/${tour.id}`)}>
+                    <button className={styles['btn-icon']} title="Chỉnh sửa tour" onClick={() => onEdit(tour)}>
                         <i className="fas fa-edit" />
                     </button>
                     <button className={`${styles['btn-icon']} ${styles['danger']}`} title="Xóa" onClick={() => onDelete(tour)}>
@@ -69,8 +69,8 @@ const TourRow = ({ tour, isSelected, onSelect, onDelete }) => {
     );
 };
 
-// ── TourModal (Thêm tour) ─────────────────────────────────────
-const TourModal = ({ isOpen, onClose, onCreated }) => {
+// ── TourModal (Thêm/Sửa tour) ─────────────────────────────────────
+const TourModal = ({ isOpen, onClose, onSuccess, showNotification, editTour }) => {
     const [form, setForm] = useState({ tourName: '', describe: '', adultPrice: '', childPrice: '', status: STATUS_ACTIVE, idDestination: '' });
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState('');
@@ -88,9 +88,11 @@ const TourModal = ({ isOpen, onClose, onCreated }) => {
             const list = Array.isArray(r.data) ? r.data : [];
             setDestinations(list);
             if (list.length === 0) setDestError('Không có điểm đến nào.');
+            return list;
         } catch (err) {
             console.error('Lỗi tải điểm đến:', err);
             setDestError('Không thể tải danh sách điểm đến.');
+            return [];
         } finally {
             setDestLoading(false);
         }
@@ -98,12 +100,27 @@ const TourModal = ({ isOpen, onClose, onCreated }) => {
 
     useEffect(() => {
         if (!isOpen) return;
-        setForm({ tourName: '', describe: '', adultPrice: '', childPrice: '', status: STATUS_ACTIVE, idDestination: '' });
-        setImageFile(null);
-        setImagePreview('');
         setErrors({});
-        loadDestinations();
-    }, [isOpen, loadDestinations]);
+        loadDestinations().then(list => {
+            if (editTour) {
+                const destId = list?.find(d => d.city === editTour.city)?.id || '';
+                setForm({
+                    tourName: editTour.tourName || '',
+                    describe: editTour.describe || '',
+                    adultPrice: editTour.adultPrice || '',
+                    childPrice: editTour.childPrice || '',
+                    status: editTour.status || STATUS_ACTIVE,
+                    idDestination: destId
+                });
+                setImagePreview(editTour.image || '');
+                setImageFile(null); // Backend API sửa tour chưa hỗ trợ đổi ảnh
+            } else {
+                setForm({ tourName: '', describe: '', adultPrice: '', childPrice: '', status: STATUS_ACTIVE, idDestination: '' });
+                setImageFile(null);
+                setImagePreview('');
+            }
+        });
+    }, [isOpen, editTour, loadDestinations]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -133,14 +150,31 @@ const TourModal = ({ isOpen, onClose, onCreated }) => {
         setSaving(true);
         try {
             const dto = { tourName: form.tourName, describe: form.describe, adultPrice: parseFloat(form.adultPrice), childPrice: parseFloat(form.childPrice), status: form.status, idDestination: parseInt(form.idDestination) };
+            
             const fd = new FormData();
             fd.append('dto', new Blob([JSON.stringify(dto)], { type: 'application/json' }));
             if (imageFile) fd.append('file', imageFile);
-            const res = await axiosClient.post('/tours', fd);
-            onCreated(res.data.idTour);
-            onClose();
+
+            if (editTour) {
+                // Sửa tour: PUT (truyền FormData)
+                const res = await axiosClient.put(`/tours/${editTour.id}`, fd);
+                const msg = (typeof res.data === 'string' ? res.data : res.data?.message) || 'Sửa tour thành công!';
+                if (showNotification) showNotification(msg, 'success');
+                onSuccess(); // Báo cập nhật xong
+                onClose();
+            } else {
+                // Thêm tour: POST (truyền FormData)
+                const res = await axiosClient.post('/tours', fd);
+                const msg = (typeof res.data === 'string' ? res.data : res.data?.message) || 'Thêm tour thành công!';
+                if (showNotification) showNotification(msg, 'success');
+                onSuccess(res.data?.idTour); // Chuyển đến trang chi tiết
+                onClose();
+            }
         } catch (err) {
-            const msg = err.response?.data?.message || err.response?.data || 'Có lỗi xảy ra. Vui lòng thử lại.';
+            let msg = 'Có lỗi xảy ra. Vui lòng thử lại.';
+            if (err.response?.data) {
+                msg = typeof err.response.data === 'string' ? err.response.data : (err.response.data.message || msg);
+            }
             if (showNotification) {
                 showNotification(msg, 'error');
             } else {
@@ -157,7 +191,7 @@ const TourModal = ({ isOpen, onClose, onCreated }) => {
             <div className={`${styles['modal-dialog']} ${styles['modal-lg']}`} onClick={e => e.stopPropagation()}>
                 <div className={styles['modal-content']}>
                     <div className={styles['modal-header']}>
-                        <h3><i className="fas fa-plus-circle" /> Thêm tour mới</h3>
+                        <h3><i className={editTour ? "fas fa-edit" : "fas fa-plus-circle"} /> {editTour ? 'Chỉnh sửa tour' : 'Thêm tour mới'}</h3>
                         <button className={styles['btn-close-modal']} onClick={onClose}><i className="fas fa-times" /></button>
                     </div>
                     <div className={styles['modal-body']}>
@@ -246,7 +280,7 @@ const TourModal = ({ isOpen, onClose, onCreated }) => {
                                 <label className={styles['upload-label']}>
                                     <input type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
                                     <i className="fas fa-cloud-upload-alt" />
-                                    <span>{imageFile ? imageFile.name : 'Nhấn để chọn ảnh từ thiết bị'}</span>
+                                    <span>{imageFile ? imageFile.name : (editTour ? 'Nhấn để chọn ảnh mới (sẽ thay thế ảnh cũ)' : 'Nhấn để chọn ảnh từ thiết bị')}</span>
                                 </label>
                                 {imagePreview && <div className={styles['image-preview']}><img src={imagePreview} alt="preview" /></div>}
                             </div>
@@ -255,7 +289,7 @@ const TourModal = ({ isOpen, onClose, onCreated }) => {
                     <div className={styles['modal-footer']}>
                         <button className={styles['btn-secondary']} onClick={onClose} disabled={saving}>Hủy</button>
                         <button className={styles['btn-primary']} onClick={handleSubmit} disabled={saving}>
-                            {saving ? <><i className="fas fa-spinner fa-spin" /> Đang tạo...</> : <><i className="fas fa-plus" /> Thêm tour</>}
+                            {saving ? <><i className="fas fa-spinner fa-spin" /> Đang lưu...</> : <><i className={editTour ? "fas fa-save" : "fas fa-plus"} /> {editTour ? 'Lưu thay đổi' : 'Thêm tour'}</>}
                         </button>
                     </div>
                 </div>
@@ -372,6 +406,7 @@ const AdminTours = () => {
     const [filterCity, setFilterCity] = useState('');
     const [selectedIds, setSelectedIds] = useState([]);
     const [modalOpen, setModalOpen] = useState(false);
+    const [tourToEdit, setTourToEdit] = useState(null); // Tour đang được sửa
     const [deleteModal, setDeleteModal] = useState({ open: false, tour: null, deleting: false });
     const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0, avgRating: '—' });
     const [notification, setNotification] = useState({ open: false, message: '', type: 'success' });
@@ -413,17 +448,39 @@ const AdminTours = () => {
             && (!filterCity || t.city?.toLowerCase().includes(filterCity.toLowerCase()));
     });
 
-    const handleCreated = (idTour) => navigate(`/admin/tours/${idTour}`);
+    const handleSuccess = (idTour) => {
+        if (idTour) {
+            // Trường hợp thêm mới, idTour sẽ tồn tại -> chuyển đến trang chi tiết
+            navigate(`/admin/tours/${idTour}`);
+        } else {
+            // Trường hợp sửa thành công -> fetch lại dữ liệu
+            fetchTours(currentPage, filterStatus); fetchStats();
+        }
+    };
+
+    const openCreateModal = () => {
+        setTourToEdit(null);
+        setModalOpen(true);
+    };
+
+    const openEditModal = (tour) => {
+        setTourToEdit(tour);
+        setModalOpen(true);
+    };
 
     const handleDelete = async () => {
         setDeleteModal(p => ({ ...p, deleting: true }));
         try {
             const res = await axiosClient.delete(`/tours/${deleteModal.tour.id}`);
             setDeleteModal({ open: false, tour: null, deleting: false });
-            showNotification(res.data || 'Xóa tour thành công!', 'success');
+            const msg = (typeof res.data === 'string' ? res.data : res.data?.message) || 'Xóa tour thành công!';
+            showNotification(msg, 'success');
             fetchTours(currentPage, filterStatus); fetchStats();
         } catch (err) { 
-            const msg = err.response?.data || 'Không thể xóa. Vui lòng thử lại.';
+            let msg = 'Không thể xóa. Vui lòng thử lại.';
+            if (err.response?.data) {
+                msg = typeof err.response.data === 'string' ? err.response.data : (err.response.data.message || msg);
+            }
             setDeleteModal(p => ({ ...p, deleting: false })); 
             showNotification(msg, 'error');
         }
@@ -444,7 +501,7 @@ const AdminTours = () => {
                     <p>Thêm, sửa, xóa và quản lý tất cả các tour du lịch</p>
                 </div>
                 <div className={styles['header-actions']}>
-                    <button className={styles['btn-primary']} onClick={() => setModalOpen(true)}>
+                    <button className={styles['btn-primary']} onClick={openCreateModal}>
                         <i className="fas fa-plus" /> Thêm tour mới
                     </button>
                 </div>
@@ -510,7 +567,7 @@ const AdminTours = () => {
                             ) : displayed.length === 0 ? (
                                 <tr><td colSpan={7}><div className={styles['empty-state']}><i className="fas fa-map-marked-alt" /><p>Không tìm thấy tour nào</p></div></td></tr>
                             ) : displayed.map(tour => (
-                                <TourRow key={tour.id} tour={tour} isSelected={selectedIds.includes(tour.id)} onSelect={id => setSelectedIds(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id])} onDelete={t => setDeleteModal({ open: true, tour: t, deleting: false })} />
+                                <TourRow key={tour.id} tour={tour} isSelected={selectedIds.includes(tour.id)} onSelect={id => setSelectedIds(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id])} onDelete={t => setDeleteModal({ open: true, tour: t, deleting: false })} onEdit={t => openEditModal(t)} />
                             ))}
                         </tbody>
                     </table>
@@ -528,7 +585,7 @@ const AdminTours = () => {
                 {!loading && !error && <Pagination currentPage={currentPage} totalPages={totalPages} totalElements={totalElements} onPageChange={p => fetchTours(p, filterStatus)} />}
             </div>
 
-            <TourModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onCreated={handleCreated} showNotification={showNotification} />
+            <TourModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSuccess={handleSuccess} showNotification={showNotification} editTour={tourToEdit} />
             <DeleteModal isOpen={deleteModal.open} tour={deleteModal.tour} onClose={() => setDeleteModal({ open: false, tour: null, deleting: false })} onConfirm={handleDelete} deleting={deleteModal.deleting} />
             <NotificationModal isOpen={notification.open} message={notification.message} type={notification.type} onClose={() => setNotification({ ...notification, open: false })} />
         </AdminLayout>
