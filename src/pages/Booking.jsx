@@ -44,13 +44,13 @@ const Booking = () => {
         const fetchData = async () => {
             try {
                 // Gọi API lấy thông tin Đặt tour (InfoBookingResponseDTO) bằng ID Lịch Khởi Hành
-                const infoRes = await axiosClient.get(`/departureChedules/${bookingState.scheduleId}/info-booking`);
+                const infoRes = await axiosClient.get(`/departureSchedules/${bookingState.scheduleId}/info-booking`);
                 setScheduleInfo(infoRes.data);
             } catch (err) {
                 console.error("Lỗi khi tải dữ liệu đặt tour:", err);
                 setError('Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.');
             } finally {
-                setLoading(false);
+                setLoading(false);  
             }
         };
 

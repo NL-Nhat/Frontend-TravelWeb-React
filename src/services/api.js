@@ -57,6 +57,9 @@ api.interceptors.response.use(
                 isRefreshing = false;
 
                 // Refresh fail → logout
+                localStorage.removeItem('isAuthenticated');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('userAvatar');
                 window.location.href = "/login";
                 return Promise.reject(refreshError);
             }
