@@ -28,10 +28,15 @@ api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
+        // Tránh vòng lặp hoặc treo (hang) khi chính API /auth/refresh trả về 401
+        if (originalRequest.url.includes('/auth/refresh')) {
+            return Promise.reject(error);
+        }
+
         // Nếu lỗi 401 và chưa retry
         if (error.response?.status === 401 && !originalRequest._retry) {
 
-            // Nếu đang refresh rồi → chờ
+            // Nếu đang refresh rồi → cho các request khác vào hàng chờ
             if (isRefreshing) {
                 return new Promise((resolve) => {
                     subscribeTokenRefresh(() => {
@@ -44,22 +49,27 @@ api.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                // Gọi API refresh
-                await api.post("/auth/refresh");
+                // Gọi API refresh bằng axios gốc để chắc chắn không bị dính interceptor nữa
+                await axios.post("http://localhost:8085/api/auth/refresh", {}, { withCredentials: true });
 
                 isRefreshing = false;
                 onRefreshed();
 
-                // Gọi lại request cũ
+                // Gọi lại request ban đầu vừa bị lỗi
                 return api(originalRequest);
 
             } catch (refreshError) {
                 isRefreshing = false;
+                refreshSubscribers = []; // Hủy toàn bộ hàng đợi nếu refresh thất bại
 
-                // Refresh fail → logout
+                // Refresh token hết hạn hoặc không hợp lệ → Đăng xuất
                 localStorage.removeItem('isAuthenticated');
                 localStorage.removeItem('userRole');
                 localStorage.removeItem('userAvatar');
+                
+                // Dispatch event để Header.jsx (hoặc các component khác) nhận biết ngay lập tức
+                window.dispatchEvent(new Event('authStatusChanged'));
+                
                 window.location.href = "/login";
                 return Promise.reject(refreshError);
             }
