@@ -141,7 +141,11 @@ const TourModal = ({ isOpen, onClose, onCreated }) => {
             onClose();
         } catch (err) {
             const msg = err.response?.data?.message || err.response?.data || 'Có lỗi xảy ra. Vui lòng thử lại.';
-            alert(msg);
+            if (showNotification) {
+                showNotification(msg, 'error');
+            } else {
+                alert(msg);
+            }
         } finally {
             setSaving(false);
         }
@@ -260,6 +264,39 @@ const TourModal = ({ isOpen, onClose, onCreated }) => {
     );
 };
 
+// ── NotificationModal ───────────────────────────────────────────────
+const NotificationModal = ({ isOpen, message, type, onClose }) => {
+    if (!isOpen) return null;
+    
+    const isSuccess = type === 'success';
+    const iconClass = isSuccess ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+    const title = isSuccess ? 'Thành công' : 'Lỗi';
+    const color = isSuccess ? '#04AA8A' : '#E53E3E';
+
+    return (
+        <div className={styles['modal-overlay']} onClick={onClose} style={{ zIndex: 9999 }}>
+            <div className={`${styles['modal-dialog']} ${styles['modal-sm']}`} onClick={e => e.stopPropagation()} style={{ animation: 'slideIn 0.3s ease-out' }}>
+                <div className={styles['modal-content']}>
+                    <div className={styles['modal-body']} style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
+                        <i className={iconClass} style={{ fontSize: '4rem', color: color, marginBottom: '1.2rem', display: 'block' }} />
+                        <h3 style={{ margin: '0 0 0.5rem 0', color: '#2D3748', fontSize: '1.5rem' }}>{title}</h3>
+                        <p style={{ color: '#4A5568', fontSize: '1rem', margin: 0, lineHeight: '1.5' }}>{message}</p>
+                    </div>
+                    <div className={styles['modal-footer']} style={{ justifyContent: 'center', borderTop: 'none', paddingBottom: '1.5rem' }}>
+                        <button 
+                            className={styles['btn-primary']} 
+                            onClick={onClose} 
+                            style={{ backgroundColor: color, padding: '0.6rem 2rem', borderRadius: '50px' }}
+                        >
+                            Đóng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // ── DeleteModal ───────────────────────────────────────────────
 const DeleteModal = ({ isOpen, tour, onClose, onConfirm, deleting }) => {
     if (!isOpen || !tour) return null;
@@ -337,6 +374,11 @@ const AdminTours = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [deleteModal, setDeleteModal] = useState({ open: false, tour: null, deleting: false });
     const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0, avgRating: '—' });
+    const [notification, setNotification] = useState({ open: false, message: '', type: 'success' });
+
+    const showNotification = useCallback((message, type = 'success') => {
+        setNotification({ open: true, message, type });
+    }, []);
 
     const fetchTours = useCallback(async (page = 0, status = '') => {
         setLoading(true); setError(null); setSelectedIds([]);
@@ -376,10 +418,15 @@ const AdminTours = () => {
     const handleDelete = async () => {
         setDeleteModal(p => ({ ...p, deleting: true }));
         try {
-            await axiosClient.delete(`/tours/${deleteModal.tour.id}`);
+            const res = await axiosClient.delete(`/tours/${deleteModal.tour.id}`);
             setDeleteModal({ open: false, tour: null, deleting: false });
+            showNotification(res.data || 'Xóa tour thành công!', 'success');
             fetchTours(currentPage, filterStatus); fetchStats();
-        } catch { alert('Không thể xóa. Vui lòng thử lại.'); setDeleteModal(p => ({ ...p, deleting: false })); }
+        } catch (err) { 
+            const msg = err.response?.data || 'Không thể xóa. Vui lòng thử lại.';
+            setDeleteModal(p => ({ ...p, deleting: false })); 
+            showNotification(msg, 'error');
+        }
     };
 
     const statCards = [
@@ -481,8 +528,9 @@ const AdminTours = () => {
                 {!loading && !error && <Pagination currentPage={currentPage} totalPages={totalPages} totalElements={totalElements} onPageChange={p => fetchTours(p, filterStatus)} />}
             </div>
 
-            <TourModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onCreated={handleCreated} />
+            <TourModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onCreated={handleCreated} showNotification={showNotification} />
             <DeleteModal isOpen={deleteModal.open} tour={deleteModal.tour} onClose={() => setDeleteModal({ open: false, tour: null, deleting: false })} onConfirm={handleDelete} deleting={deleteModal.deleting} />
+            <NotificationModal isOpen={notification.open} message={notification.message} type={notification.type} onClose={() => setNotification({ ...notification, open: false })} />
         </AdminLayout>
     );
 };

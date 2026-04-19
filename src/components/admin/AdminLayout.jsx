@@ -3,45 +3,64 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axiosClient from '../../services/api';
 import styles from '../../styles/admin.module.css';
 
+const navItems = [
+    { path: '/admin', icon: 'fas fa-home', label: 'Dashboard' },
+    { path: '/admin/tours', icon: 'fas fa-map-marked-alt', label: 'Quản lý Tour' },
+    { path: '/admin/bookings', icon: 'fas fa-ticket-alt', label: 'Đặt Tour' },
+    { path: '/admin/users', icon: 'fas fa-users', label: 'Người dùng' },
+    { path: '/admin/guides', icon: 'fas fa-user-tie', label: 'Hướng dẫn viên' },
+    { path: '/admin/schedules', icon: 'fas fa-calendar-alt', label: 'Lịch khởi hành' },
+    { path: '/admin/reviews', icon: 'fas fa-star', label: 'Đánh giá' },
+    { path: '/admin/payments', icon: 'fas fa-dollar-sign', label: 'Thanh toán' },
+    { path: '/admin/reports', icon: 'fas fa-chart-line', label: 'Báo cáo' },
+    { path: '/admin/settings', icon: 'fas fa-cog', label: 'Cài đặt' },
+];
+
 const AdminLayout = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isLoading, setIsLoading] = useState(true); // Thêm state loading
+    const [userProfile, setUserProfile] = useState(null); // Lưu thông tin user
     const navigate = useNavigate();
     const location = useLocation();
 
     // Kiểm tra quyền admin
     useEffect(() => {
-        const role = localStorage.getItem('userRole');
-        const isAuth = localStorage.getItem('isAuthenticated');
-        if (!isAuth || role !== 'ROLE_ADMIN') {
-            navigate('/login');
-        }
+        const checkAdmin = async () => {
+            try {
+                const res = await axiosClient.get('/users/profile');
+
+                if (res.data.role !== 'ROLE_ADMIN' && res.data.role !== 'ADMIN') {
+                    navigate('/login');
+                }
+                else {
+                    setUserProfile(res.data); // Lưu lại để dùng cho UI
+                    setIsLoading(false); // Cho phép render
+                }
+
+            } catch (err) {
+                navigate('/login');
+            }
+        };
+
+        checkAdmin();
     }, [navigate]);
 
     const handleLogout = async (e) => {
         e.preventDefault();
         try {
             await axiosClient.post('/auth/logout');
-            localStorage.removeItem('isAuthenticated');
-            localStorage.removeItem('userRole');
-            window.dispatchEvent(new Event('authStatusChanged'));
-            navigate('/login');
+            localStorage.clear();
+
+            window.location.href = "/login";
         } catch (err) {
             console.error('Lỗi khi đăng xuất:', err);
         }
     };
 
-    const navItems = [
-        { path: '/admin', icon: 'fas fa-home', label: 'Dashboard' },
-        { path: '/admin/tours', icon: 'fas fa-map-marked-alt', label: 'Quản lý Tour' },
-        { path: '/admin/bookings', icon: 'fas fa-ticket-alt', label: 'Đặt Tour' },
-        { path: '/admin/users', icon: 'fas fa-users', label: 'Người dùng' },
-        { path: '/admin/guides', icon: 'fas fa-user-tie', label: 'Hướng dẫn viên' },
-        { path: '/admin/schedules', icon: 'fas fa-calendar-alt', label: 'Lịch khởi hành' },
-        { path: '/admin/reviews', icon: 'fas fa-star', label: 'Đánh giá' },
-        { path: '/admin/payments', icon: 'fas fa-dollar-sign', label: 'Thanh toán' },
-        { path: '/admin/reports', icon: 'fas fa-chart-line', label: 'Báo cáo' },
-        { path: '/admin/settings', icon: 'fas fa-cog', label: 'Cài đặt' },
-    ];
+    // Nếu đang kiểm tra quyền, hiển thị màn hình loading trắng hoặc spinner
+    if (isLoading) {
+        return <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20vh' }}>Đang tải...</div>;
+    }
 
     return (
         <div className={styles['admin-body']}>
@@ -67,10 +86,10 @@ const AdminLayout = ({ children }) => {
                 </div>
 
                 <div className={styles['sidebar-user']}>
-                    <img src="https://i.pravatar.cc/150?img=12" alt="Admin" />
+                    <img src={userProfile?.avatar || "https://i.pravatar.cc/150?img=12"} alt="Admin" />
                     <div className={styles['user-info']}>
-                        <h4>Admin User</h4>
-                        <span>Quản trị viên</span>
+                        <h4>{userProfile?.fullName || 'Admin User'}</h4>
+                        <span>Admin</span>
                     </div>
                 </div>
 
@@ -132,8 +151,8 @@ const AdminLayout = ({ children }) => {
                             <span className={styles['notification-badge']}>3</span>
                         </button>
                         <div className={styles['header-user']}>
-                            <img src="https://i.pravatar.cc/150?img=12" alt="Admin" />
-                            <span>Admin</span>
+                            <img src={userProfile?.avatar || "https://i.pravatar.cc/150?img=12"} alt="Admin" />
+                            <span>{userProfile?.fullName || 'Admin'}</span>
                         </div>
                     </div>
                 </header>

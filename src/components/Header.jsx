@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom'; // Thêm useLocation
 
 const Header = () => {
@@ -26,17 +26,21 @@ const Header = () => {
 
         // Lắng nghe sự kiện để cập nhật Avatar lập tức khi chuyển trang
         window.addEventListener('avatarUpdated', checkAuth);
-        return () => window.removeEventListener('avatarUpdated', checkAuth);
+        window.addEventListener('authStatusChanged', checkAuth);
+        return () => {
+            window.removeEventListener('avatarUpdated', checkAuth);
+            window.removeEventListener('authStatusChanged', checkAuth);
+        };
     }, []);
 
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 100);
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     // Hàm kiểm tra xem menu nào đang active
-    const checkActive = (path) => {
+    const checkActive = useCallback((path) => {
         // Nếu là trang chủ, path phải giống hệt '/'
         if (path === '/') {
             return location.pathname === '/';
@@ -47,7 +51,7 @@ const Header = () => {
         }
         // Các trang khác
         return location.pathname.startsWith(path);
-    };
+    }, [location.pathname]);
 
     return (
         <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
