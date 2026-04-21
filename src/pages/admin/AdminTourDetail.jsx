@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/admin/AdminLayout';
 import axiosClient from '../../services/api';
 import s from '../../styles/adminTourDetail.module.css';
+import sharedStyles from '../../styles/adminTour.module.css'; // Để dùng chung style Modal
 
 const formatPrice = (v) => v == null ? '—' : new Intl.NumberFormat('vi-VN').format(v) + 'đ';
 const formatDate  = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
@@ -19,6 +20,66 @@ const getScheduleStatus = (startDate, endDate, booked, max) => {
     return { label: 'Đang diễn ra', cls: 'ongoing', icon: 'fa-play-circle' };
 };
 
+// ── NotificationModal ───────────────────────────────────────────────
+const NotificationModal = ({ isOpen, message, type, onClose }) => {
+    if (!isOpen) return null;
+    
+    const isSuccess = type === 'success';
+    const iconClass = isSuccess ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+    const title = isSuccess ? 'Thành công' : 'Lỗi';
+    const color = isSuccess ? '#04AA8A' : '#E53E3E';
+
+    return (
+        <div className={sharedStyles['modal-overlay']} onClick={onClose} style={{ zIndex: 9999 }}>
+            <div className={`${sharedStyles['modal-dialog']} ${sharedStyles['modal-sm']}`} onClick={e => e.stopPropagation()} style={{ animation: 'slideIn 0.3s ease-out' }}>
+                <div className={sharedStyles['modal-content']}>
+                    <div className={sharedStyles['modal-body']} style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
+                        <i className={iconClass} style={{ fontSize: '4rem', color: color, marginBottom: '1.2rem', display: 'block' }} />
+                        <h3 style={{ margin: '0 0 0.5rem 0', color: '#2D3748', fontSize: '1.5rem' }}>{title}</h3>
+                        <p style={{ color: '#4A5568', fontSize: '1rem', margin: 0, lineHeight: '1.5' }}>{message}</p>
+                    </div>
+                    <div className={sharedStyles['modal-footer']} style={{ justifyContent: 'center', borderTop: 'none', paddingBottom: '1.5rem' }}>
+                        <button 
+                            className={sharedStyles['btn-primary']} 
+                            onClick={onClose} 
+                            style={{ backgroundColor: color, padding: '0.6rem 2rem', borderRadius: '50px' }}
+                        >
+                            Đóng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ── DeleteModal ───────────────────────────────────────────────
+const DeleteModal = ({ isOpen, imgId, onClose, onConfirm, deleting }) => {
+    if (!isOpen || !imgId) return null;
+    return (
+        <div className={sharedStyles['modal-overlay']} onClick={onClose} style={{ zIndex: 9999 }}>
+            <div className={`${sharedStyles['modal-dialog']} ${sharedStyles['modal-sm']}`} onClick={e => e.stopPropagation()}>
+                <div className={sharedStyles['modal-content']}>
+                    <div className={`${sharedStyles['modal-header']} ${sharedStyles['danger']}`}>
+                        <h3><i className="fas fa-exclamation-triangle" /> Xác nhận xóa</h3>
+                        <button className={sharedStyles['btn-close-modal']} onClick={onClose}><i className="fas fa-times" /></button>
+                    </div>
+                    <div className={sharedStyles['modal-body']}>
+                        <p style={{ color: '#4A5568' }}>Bạn có chắc chắn muốn xóa hình ảnh này không?</p>
+                        <div className={sharedStyles['warning-box']} style={{ marginTop: '1rem' }}><i className="fas fa-info-circle" /> Hành động này không thể hoàn tác!</div>
+                    </div>
+                    <div className={sharedStyles['modal-footer']}>
+                        <button className={sharedStyles['btn-secondary']} onClick={onClose} disabled={deleting}>Hủy</button>
+                        <button className={sharedStyles['btn-danger']} onClick={onConfirm} disabled={deleting}>
+                            {deleting ? <><i className="fas fa-spinner fa-spin" /> Đang xóa...</> : <><i className="fas fa-trash" /> Xóa ảnh</>}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // ── AdminTourDetail ───────────────────────────────────────────
 const AdminTourDetail = () => {
     const { id } = useParams();
@@ -28,6 +89,14 @@ const AdminTourDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError]     = useState(null);
     const [uploading, setUploading] = useState(false);
+    
+    // Modal states
+    const [notification, setNotification] = useState({ open: false, message: '', type: 'success' });
+    const [deleteModal, setDeleteModal] = useState({ open: false, imgId: null, deleting: false });
+
+    const showNotification = useCallback((message, type = 'success') => {
+        setNotification({ open: true, message, type });
+    }, []);
 
     // ── Fetch detail ─────────────────────────────────────────
     const fetchDetail = useCallback(async () => {
@@ -46,26 +115,48 @@ const AdminTourDetail = () => {
 
     // ── Thêm ảnh phụ ────────────────────────────────────────
     const handleAddImage = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
         setUploading(true);
         try {
             const fd = new FormData();
-            fd.append('file', file);
-            fd.append('idTour', id);
-            await axiosClient.post('/tours/images', fd);
+            for (let i = 0; i < files.length; i++) {
+                fd.append('files', files[i]);
+            }
+            await axiosClient.post(`/imagetours/${id}`, fd);
             await fetchDetail();
-        } catch { alert('Upload ảnh thất bại. Vui lòng thử lại.'); }
-        finally { setUploading(false); e.target.value = ''; }
+            showNotification('Thêm ảnh thành công!', 'success');
+        } catch (err) { 
+            showNotification(err.response?.data?.message || err.response?.data || 'Upload ảnh thất bại. Vui lòng thử lại.', 'error');
+        } finally { 
+            setUploading(false); 
+            e.target.value = ''; 
+        }
     };
 
     // ── Xóa ảnh phụ ─────────────────────────────────────────
-    const handleDeleteImage = async (imgId) => {
-        if (!window.confirm('Xóa ảnh này?')) return;
+    const handleDeleteClick = (imgId) => {
+        setDeleteModal({ open: true, imgId, deleting: false });
+    };
+
+    const confirmDeleteImage = async () => {
+        if (!deleteModal.imgId) return;
+        setDeleteModal(p => ({ ...p, deleting: true }));
         try {
-            await axiosClient.delete(`/tours/images/${imgId}`);
+            const res = await axiosClient.delete(`/imagetours/${deleteModal.imgId}`);
+            setDeleteModal({ open: false, imgId: null, deleting: false });
+            
+            const msg = (typeof res.data === 'string' ? res.data : res.data?.message) || 'Xóa ảnh thành công!';
+            showNotification(msg, 'success');
             await fetchDetail();
-        } catch { alert('Xóa ảnh thất bại.'); }
+        } catch (err) { 
+            setDeleteModal(p => ({ ...p, deleting: false }));
+            let msg = 'Xóa ảnh thất bại.';
+            if (err.response?.data) {
+                msg = typeof err.response.data === 'string' ? err.response.data : (err.response.data.message || msg);
+            }
+            showNotification(msg, 'error');
+        }
     };
 
     // ── Render: loading ──────────────────────────────────────
@@ -166,11 +257,11 @@ const AdminTourDetail = () => {
             <div className={s['section-card']}>
                 <div className={s['section-header']}>
                     <h3 className={s['section-title']}>
-                        <i className="fas fa-images" /> Hình ảnh phụ
+                        <i className="fas fa-images" /> Hình ảnh tour
                         <span style={{ fontWeight: 400, color: '#718096', fontSize: '0.85rem' }}>({images.length} ảnh)</span>
                     </h3>
                     <label className={s['btn-primary']} style={{ cursor: uploading ? 'not-allowed' : 'pointer', opacity: uploading ? 0.7 : 1 }}>
-                        <input type="file" accept="image/*" onChange={handleAddImage} style={{ display: 'none' }} disabled={uploading} />
+                        <input type="file" accept="image/*" multiple onChange={handleAddImage} style={{ display: 'none' }} disabled={uploading} />
                         {uploading ? <><i className="fas fa-spinner fa-spin" /> Đang tải...</> : <><i className="fas fa-plus" /> Thêm ảnh</>}
                     </label>
                 </div>
@@ -186,7 +277,7 @@ const AdminTourDetail = () => {
                                 <div key={img.id} className={s['gallery-item']}>
                                     <img src={img.image} alt="" />
                                     <div className={s['gallery-item-overlay']}>
-                                        <button className={s['gallery-delete-btn']} onClick={() => handleDeleteImage(img.id)} title="Xóa ảnh">
+                                        <button className={s['gallery-delete-btn']} onClick={() => handleDeleteClick(img.id)} title="Xóa ảnh">
                                             <i className="fas fa-trash" />
                                         </button>
                                     </div>
@@ -273,6 +364,9 @@ const AdminTourDetail = () => {
                     )}
                 </div>
             </div>
+
+            <NotificationModal isOpen={notification.open} message={notification.message} type={notification.type} onClose={() => setNotification({ ...notification, open: false })} />
+            <DeleteModal isOpen={deleteModal.open} imgId={deleteModal.imgId} deleting={deleteModal.deleting} onClose={() => setDeleteModal({ open: false, imgId: null, deleting: false })} onConfirm={confirmDeleteImage} />
         </AdminLayout>
     );
 };
