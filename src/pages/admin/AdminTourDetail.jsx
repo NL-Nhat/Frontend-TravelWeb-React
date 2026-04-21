@@ -54,24 +54,257 @@ const NotificationModal = ({ isOpen, message, type, onClose }) => {
 };
 
 // ── DeleteModal ───────────────────────────────────────────────
-const DeleteModal = ({ isOpen, imgId, onClose, onConfirm, deleting }) => {
-    if (!isOpen || !imgId) return null;
+const DeleteModal = ({ isOpen, itemId, title, message, btnText, onClose, onConfirm, deleting }) => {
+    if (!isOpen || !itemId) return null;
     return (
         <div className={sharedStyles['modal-overlay']} onClick={onClose} style={{ zIndex: 9999 }}>
             <div className={`${sharedStyles['modal-dialog']} ${sharedStyles['modal-sm']}`} onClick={e => e.stopPropagation()}>
                 <div className={sharedStyles['modal-content']}>
                     <div className={`${sharedStyles['modal-header']} ${sharedStyles['danger']}`}>
-                        <h3><i className="fas fa-exclamation-triangle" /> Xác nhận xóa</h3>
+                        <h3><i className="fas fa-exclamation-triangle" /> {title || 'Xác nhận xóa'}</h3>
                         <button className={sharedStyles['btn-close-modal']} onClick={onClose}><i className="fas fa-times" /></button>
                     </div>
                     <div className={sharedStyles['modal-body']}>
-                        <p style={{ color: '#4A5568' }}>Bạn có chắc chắn muốn xóa hình ảnh này không?</p>
+                        <p style={{ color: '#4A5568' }}>{message || 'Bạn có chắc chắn muốn xóa không?'}</p>
                         <div className={sharedStyles['warning-box']} style={{ marginTop: '1rem' }}><i className="fas fa-info-circle" /> Hành động này không thể hoàn tác!</div>
                     </div>
                     <div className={sharedStyles['modal-footer']}>
                         <button className={sharedStyles['btn-secondary']} onClick={onClose} disabled={deleting}>Hủy</button>
                         <button className={sharedStyles['btn-danger']} onClick={onConfirm} disabled={deleting}>
-                            {deleting ? <><i className="fas fa-spinner fa-spin" /> Đang xóa...</> : <><i className="fas fa-trash" /> Xóa ảnh</>}
+                            {deleting ? <><i className="fas fa-spinner fa-spin" /> Đang xóa...</> : <><i className="fas fa-trash" /> {btnText || 'Xóa'}</>}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ── ScheduleModal ───────────────────────────────────────────────
+const ScheduleModal = ({ isOpen, onClose, onSuccess, showNotification, idTour }) => {
+    const [form, setForm] = useState({ startDate: '', startTime: '', endDate: '', endTime: '', idHuongDanVien: '', maxGuest: '' });
+    const [schedules, setSchedules] = useState([]);
+
+    const [guides, setGuides] = useState([]);
+    const [loadingGuides, setLoadingGuides] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [errors, setErrors] = useState({});
+
+    useEffect(() => {
+        if (isOpen) {
+            setForm({ startDate: '', startTime: '', endDate: '', endTime: '', idHuongDanVien: '', maxGuest: '' });
+            setSchedules([]);
+            setErrors({});
+            fetchGuides();
+        }
+    }, [isOpen]);
+
+    const fetchGuides = async () => {
+        setLoadingGuides(true);
+        try {
+            const res = await axiosClient.get('/users/guides');
+            setGuides(res.data || []);
+        } catch (err) {
+            showNotification('Không thể tải danh sách hướng dẫn viên', 'error');
+        } finally {
+            setLoadingGuides(false);
+        }
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm(p => ({ ...p, [name]: value }));
+        setErrors(p => ({ ...p, [name]: undefined }));
+    };
+
+    const handleAddScheduleItem = () => {
+        setSchedules(prev => [...prev, { id: Date.now(), date: '', time: '', work: '', describe: '' }]);
+    };
+
+    const handleRemoveScheduleItem = (id) => {
+        setSchedules(prev => prev.filter(s => s.id !== id));
+    };
+
+    const handleScheduleItemChange = (id, field, value) => {
+        setSchedules(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+        setErrors(p => {
+            const newErrs = { ...p };
+            Object.keys(newErrs).forEach(k => {
+                if (k.startsWith('schedule_')) delete newErrs[k]; // Xóa lỗi cũ khi sửa
+            });
+            return newErrs;
+        });
+    };
+
+    const validate = () => {
+        const e = {};
+        if (!form.startDate) e.startDate = 'Vui lòng chọn ngày khởi hành';
+        if (!form.startTime) e.startTime = 'Vui lòng chọn giờ khởi hành';
+        if (!form.endDate) e.endDate = 'Vui lòng chọn ngày về';
+        if (!form.endTime) e.endTime = 'Vui lòng chọn giờ về';
+        if (!form.maxGuest || Number(form.maxGuest) <= 0) e.maxGuest = 'Số khách tối đa phải > 0';
+        if (!form.idHuongDanVien) e.idHuongDanVien = 'Vui lòng chọn hướng dẫn viên';
+        
+        if (form.startDate && form.endDate && new Date(form.startDate) > new Date(form.endDate)) {
+            e.endDate = 'Ngày về không được trước ngày khởi hành';
+        }
+        
+        schedules.forEach((item, idx) => {
+            if (!item.date) e[`schedule_${idx}_date`] = 'Vui lòng chọn ngày';
+            if (!item.time) e[`schedule_${idx}_time`] = 'Vui lòng chọn giờ';
+            if (!item.work.trim()) e[`schedule_${idx}_work`] = 'Vui lòng nhập hoạt động';
+        });
+
+        return e;
+    };
+
+    const handleSubmit = async () => {
+        const errs = validate();
+        if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+        
+        setSaving(true);
+        try {
+            const payload = {
+                startDate: form.startDate,
+                startTime: form.startTime,
+                endDate: form.endDate,
+                endTime: form.endTime,
+                idHuongDanVien: parseInt(form.idHuongDanVien),
+                maxGuest: parseInt(form.maxGuest),
+                schedules: schedules.map(s => ({
+                    date: s.date,
+                    time: s.time,
+                    work: s.work,
+                    describe: s.describe
+                }))
+            };
+            const res = await axiosClient.post(`/departureSchedules/${idTour}`, payload);
+            const msg = (typeof res.data === 'string' ? res.data : res.data?.message) || 'Thêm lịch khởi hành thành công!';
+            showNotification(msg, 'success');
+            onSuccess();
+            onClose();
+        } catch (err) {
+            let msg = 'Thêm lịch thất bại.';
+            if (err.response?.data) {
+                msg = typeof err.response.data === 'string' ? err.response.data : (err.response.data.message || msg);
+            }
+            showNotification(msg, 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (!isOpen) return null;
+    return (
+        <div className={sharedStyles['modal-overlay']} onClick={onClose} style={{ zIndex: 999 }}>
+            <div className={`${sharedStyles['modal-dialog']} ${sharedStyles['modal-lg']}`} onClick={e => e.stopPropagation()}>
+                <div className={sharedStyles['modal-content']}>
+                    <div className={sharedStyles['modal-header']}>
+                        <h3><i className="fas fa-calendar-plus" /> Thêm lịch khởi hành</h3>
+                        <button className={sharedStyles['btn-close-modal']} onClick={onClose}><i className="fas fa-times" /></button>
+                    </div>
+                    <div className={sharedStyles['modal-body']}>
+                        <div className={sharedStyles['form-section']}>
+                            <h4><i className="fas fa-clock" /> Thời gian</h4>
+                            <div className={sharedStyles['form-row']}>
+                                <div className={sharedStyles['form-group']}>
+                                    <label>Ngày khởi hành <span className={sharedStyles['required']}>*</span></label>
+                                    <input type="date" name="startDate" value={form.startDate} onChange={handleChange} />
+                                    {errors.startDate && <span className={sharedStyles['field-error']}>{errors.startDate}</span>}
+                                </div>
+                                <div className={sharedStyles['form-group']}>
+                                    <label>Giờ khởi hành <span className={sharedStyles['required']}>*</span></label>
+                                    <input type="time" name="startTime" value={form.startTime} onChange={handleChange} />
+                                    {errors.startTime && <span className={sharedStyles['field-error']}>{errors.startTime}</span>}
+                                </div>
+                            </div>
+                            <div className={sharedStyles['form-row']}>
+                                <div className={sharedStyles['form-group']}>
+                                    <label>Ngày về <span className={sharedStyles['required']}>*</span></label>
+                                    <input type="date" name="endDate" value={form.endDate} onChange={handleChange} />
+                                    {errors.endDate && <span className={sharedStyles['field-error']}>{errors.endDate}</span>}
+                                </div>
+                                <div className={sharedStyles['form-group']}>
+                                    <label>Giờ về <span className={sharedStyles['required']}>*</span></label>
+                                    <input type="time" name="endTime" value={form.endTime} onChange={handleChange} />
+                                    {errors.endTime && <span className={sharedStyles['field-error']}>{errors.endTime}</span>}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={sharedStyles['form-section']}>
+                            <h4><i className="fas fa-users" /> Nhân sự & Chỗ ngồi</h4>
+                            <div className={sharedStyles['form-row']}>
+                                <div className={sharedStyles['form-group']}>
+                                    <label>Hướng dẫn viên <span className={sharedStyles['required']}>*</span></label>
+                                    <select name="idHuongDanVien" value={form.idHuongDanVien} onChange={handleChange} disabled={loadingGuides}>
+                                        <option value="">-- Chọn hướng dẫn viên --</option>
+                                        {guides.map(g => (
+                                            <option key={g.id} value={g.id}>{g.fullName || g.userName}</option>
+                                        ))}
+                                    </select>
+                                    {loadingGuides && <small style={{ color: '#718096', display: 'block', marginTop: '0.3rem' }}><i className="fas fa-spinner fa-spin"/> Đang tải HDV...</small>}
+                                    {errors.idHuongDanVien && <span className={sharedStyles['field-error']}>{errors.idHuongDanVien}</span>}
+                                </div>
+                                <div className={sharedStyles['form-group']}>
+                                    <label>Số khách tối đa <span className={sharedStyles['required']}>*</span></label>
+                                    <input type="number" name="maxGuest" value={form.maxGuest} onChange={handleChange} min="1" />
+                                    {errors.maxGuest && <span className={sharedStyles['field-error']}>{errors.maxGuest}</span>}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={sharedStyles['form-section']}>
+                            <h4 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span><i className="fas fa-list-ul" /> Lịch trình chi tiết</span>
+                                <button type="button" onClick={handleAddScheduleItem} className={sharedStyles['btn-primary']} style={{ padding: '0.3rem 0.8rem', fontSize: '0.85rem' }}>
+                                    <i className="fas fa-plus" /> Thêm hoạt động
+                                </button>
+                            </h4>
+                            {schedules.length === 0 ? (
+                                <p style={{ color: '#718096', fontSize: '0.9rem', fontStyle: 'italic', margin: '0.5rem 0' }}>Chưa có hoạt động nào trong lịch trình. Hãy bấm "Thêm hoạt động" để tạo mới.</p>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                                    {schedules.map((s, idx) => (
+                                        <div key={s.id} style={{ background: '#F7FAFC', padding: '1rem', borderRadius: '8px', border: '1px solid #E2E8F0', position: 'relative' }}>
+                                            <button type="button" onClick={() => handleRemoveScheduleItem(s.id)} style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'none', border: 'none', color: '#E53E3E', cursor: 'pointer', padding: '0.5rem', borderRadius: '4px' }} onMouseEnter={e => e.currentTarget.style.background='#FED7D7'} onMouseLeave={e => e.currentTarget.style.background='none'} title="Xóa hoạt động">
+                                                <i className="fas fa-trash" />
+                                            </button>
+                                            <h5 style={{ margin: '0 0 0.8rem 0', color: '#2D3748', fontSize: '0.95rem' }}>Hoạt động {idx + 1}</h5>
+                                            
+                                            <div className={sharedStyles['form-row']}>
+                                                <div className={sharedStyles['form-group']}>
+                                                    <label>Ngày <span className={sharedStyles['required']}>*</span></label>
+                                                    <input type="date" value={s.date} onChange={e => handleScheduleItemChange(s.id, 'date', e.target.value)} />
+                                                    {errors[`schedule_${idx}_date`] && <span className={sharedStyles['field-error']}>{errors[`schedule_${idx}_date`]}</span>}
+                                                </div>
+                                                <div className={sharedStyles['form-group']}>
+                                                    <label>Giờ <span className={sharedStyles['required']}>*</span></label>
+                                                    <input type="time" value={s.time} onChange={e => handleScheduleItemChange(s.id, 'time', e.target.value)} />
+                                                    {errors[`schedule_${idx}_time`] && <span className={sharedStyles['field-error']}>{errors[`schedule_${idx}_time`]}</span>}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className={sharedStyles['form-group']}>
+                                                <label>Hoạt động <span className={sharedStyles['required']}>*</span></label>
+                                                <input type="text" value={s.work} onChange={e => handleScheduleItemChange(s.id, 'work', e.target.value)} placeholder="Ví dụ: Tham quan bảo tàng, Ăn trưa..." />
+                                                {errors[`schedule_${idx}_work`] && <span className={sharedStyles['field-error']}>{errors[`schedule_${idx}_work`]}</span>}
+                                            </div>
+                                            
+                                            <div className={sharedStyles['form-group']} style={{ marginBottom: 0 }}>
+                                                <label>Mô tả chi tiết</label>
+                                                <textarea rows={2} value={s.describe} onChange={e => handleScheduleItemChange(s.id, 'describe', e.target.value)} placeholder="Nhập thêm chi tiết (tùy chọn)..." style={{ width: '100%', padding: '0.6rem', border: '1px solid #CBD5E0', borderRadius: '4px', fontFamily: 'inherit', fontSize: '0.9rem' }} />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className={sharedStyles['modal-footer']}>
+                        <button className={sharedStyles['btn-secondary']} onClick={onClose} disabled={saving}>Hủy</button>
+                        <button className={sharedStyles['btn-primary']} onClick={handleSubmit} disabled={saving}>
+                            {saving ? <><i className="fas fa-spinner fa-spin" /> Đang lưu...</> : <><i className="fas fa-plus" /> Thêm lịch</>}
                         </button>
                     </div>
                 </div>
@@ -93,6 +326,8 @@ const AdminTourDetail = () => {
     // Modal states
     const [notification, setNotification] = useState({ open: false, message: '', type: 'success' });
     const [deleteModal, setDeleteModal] = useState({ open: false, imgId: null, deleting: false });
+    const [deleteScheduleModal, setDeleteScheduleModal] = useState({ open: false, scheduleId: null, deleting: false });
+    const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
 
     const showNotification = useCallback((message, type = 'success') => {
         setNotification({ open: true, message, type });
@@ -152,6 +387,31 @@ const AdminTourDetail = () => {
         } catch (err) { 
             setDeleteModal(p => ({ ...p, deleting: false }));
             let msg = 'Xóa ảnh thất bại.';
+            if (err.response?.data) {
+                msg = typeof err.response.data === 'string' ? err.response.data : (err.response.data.message || msg);
+            }
+            showNotification(msg, 'error');
+        }
+    };
+
+    // ── Xóa lịch khởi hành ──────────────────────────────────
+    const handleDeleteScheduleClick = (scheduleId) => {
+        setDeleteScheduleModal({ open: true, scheduleId, deleting: false });
+    };
+
+    const confirmDeleteSchedule = async () => {
+        if (!deleteScheduleModal.scheduleId) return;
+        setDeleteScheduleModal(p => ({ ...p, deleting: true }));
+        try {
+            const res = await axiosClient.delete(`/departureSchedules/${deleteScheduleModal.scheduleId}`);
+            setDeleteScheduleModal({ open: false, scheduleId: null, deleting: false });
+            
+            const msg = (typeof res.data === 'string' ? res.data : res.data?.message) || 'Xóa lịch khởi hành thành công!';
+            showNotification(msg, 'success');
+            await fetchDetail();
+        } catch (err) { 
+            setDeleteScheduleModal(p => ({ ...p, deleting: false }));
+            let msg = 'Xóa lịch thất bại.';
             if (err.response?.data) {
                 msg = typeof err.response.data === 'string' ? err.response.data : (err.response.data.message || msg);
             }
@@ -295,7 +555,7 @@ const AdminTourDetail = () => {
                         <i className="fas fa-calendar-alt" /> Lịch khởi hành
                         <span style={{ fontWeight: 400, color: '#718096', fontSize: '0.85rem' }}>({schedules.length} lịch)</span>
                     </h3>
-                    <button className={s['btn-primary']}>
+                    <button className={s['btn-primary']} onClick={() => setScheduleModalOpen(true)}>
                         <i className="fas fa-plus" /> Thêm lịch
                     </button>
                 </div>
@@ -351,7 +611,7 @@ const AdminTourDetail = () => {
                                                         onMouseLeave={e => { e.currentTarget.style.background='#EBF4FF'; e.currentTarget.style.color='#3182CE'; }}>
                                                         <i className="fas fa-edit" />
                                                     </button>
-                                                    <button className={s['btn-icon-sm']} title="Xóa">
+                                                    <button className={s['btn-icon-sm']} title="Xóa" onClick={() => handleDeleteScheduleClick(sc.id)}>
                                                         <i className="fas fa-trash" />
                                                     </button>
                                                 </div>
@@ -366,7 +626,9 @@ const AdminTourDetail = () => {
             </div>
 
             <NotificationModal isOpen={notification.open} message={notification.message} type={notification.type} onClose={() => setNotification({ ...notification, open: false })} />
-            <DeleteModal isOpen={deleteModal.open} imgId={deleteModal.imgId} deleting={deleteModal.deleting} onClose={() => setDeleteModal({ open: false, imgId: null, deleting: false })} onConfirm={confirmDeleteImage} />
+            <DeleteModal isOpen={deleteModal.open} itemId={deleteModal.imgId} message="Bạn có chắc chắn muốn xóa hình ảnh này không?" btnText="Xóa ảnh" deleting={deleteModal.deleting} onClose={() => setDeleteModal({ open: false, imgId: null, deleting: false })} onConfirm={confirmDeleteImage} />
+            <DeleteModal isOpen={deleteScheduleModal.open} itemId={deleteScheduleModal.scheduleId} message="Bạn có chắc chắn muốn xóa lịch khởi hành này không?" btnText="Xóa lịch" deleting={deleteScheduleModal.deleting} onClose={() => setDeleteScheduleModal({ open: false, scheduleId: null, deleting: false })} onConfirm={confirmDeleteSchedule} />
+            <ScheduleModal isOpen={scheduleModalOpen} onClose={() => setScheduleModalOpen(false)} onSuccess={fetchDetail} showNotification={showNotification} idTour={id} />
         </AdminLayout>
     );
 };
