@@ -346,7 +346,7 @@ const DeleteModal = ({ isOpen, tour, onClose, onConfirm, deleting }) => {
                         <p style={{ color: '#4A5568' }}>Bạn có chắc chắn muốn xóa tour này?</p>
                         <div className={styles['delete-info']}>
                             <strong>{tour.tourName}</strong><br />
-                            <span style={{ color: '#718096', fontSize: '0.85rem' }}>#{tour.id} • {tour.city}</span>
+                            <span style={{ color: '#718096', fontSize: '0.85rem' }}>{tour.city}</span>
                         </div>
                         <div className={styles['warning-box']}><i className="fas fa-info-circle" /> Hành động này không thể hoàn tác!</div>
                     </div>
